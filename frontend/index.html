@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ruby Tool</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <header class="main-header">
+      <a href="#" class="title" id="nav-ruby">Ruby</a>
+      <nav class="main-nav">
+        <ul class="main-nav_ul">
+          <li class="main-nav_li">
+            <a href="#" id="nav-history">Geçmiş</a>
+          </li>
+          <li class="main-nav_li">
+            <a href="#">Profil</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="main-wrapper">
+      <div id="tab-main">
+        <section class="hero-section">
+          <div class="hero-content">
+            <h1 class="hero-title">Dijital Dünyadaki<br />Kalkanınız.</h1>
+            <p class="hero-subtitle">
+              Ruby, yeni nesil yapay zeka mimarisi ile şüpheli bağlantıları ve
+              e-postaları anında analiz eder. Phishing saldırılarına karşı
+              korunmak için özelliklerimizi keşfedin.
+            </p>
+            <a href="#analiz-alani" class="hero-btn">Hemen Analiz Et</a>
+          </div>
+          <div class="hero-visual">
+            <img
+              src="img/ruby-icon.png"
+              alt="Güvenlik Analizi"
+              class="hero-image"
+            />
+          </div>
+        </section>
+
+        <section class="container" id="analiz-alani">
+          <div class="form-card">
+            <h1>Kontrol et, güven kazan</h1>
+            <p>
+              Dijital dünyada şüphelerinize kulak verin. Şüpheli bulduğunuz
+              e-postaları veya bağlantıları analiz edin; gelişmiş yapay zeka
+              desteğimizle oltalama (phishing) girişimlerini anında tespit edin
+              ve kişisel verilerinizi koruma altına alın.
+            </p>
+            <div class="content-body">
+              <label for="linkoremail">İçerik</label>
+              <div class="textarea-wrapper">
+                <textarea
+                  id="linkoremail"
+                  rows="5"
+                  placeholder="Lütfen analiz edilecek bağlantıyı veya e-posta içeriğini buraya yapıştırın..."
+                ></textarea>
+                <button
+                  class="minimal-clear-btn"
+                  id="temizleBtn"
+                  title="İçeriği Temizle"
+                  style="display: none"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div class="content-footer">
+              <button class="btn" id="analizBtn">Analiz Et</button>
+            </div>
+
+            <div class="result-card" id="resultCard">
+              <div class="result-header">
+                <span class="result-badge" id="resultBadge">Düşük</span>
+                <span class="result-score" id="resultScore"></span>
+              </div>
+              <ul class="result-list" id="resultList"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="features-slider-section">
+          <div class="slider-viewport">
+            <div class="slider-track" id="featuresTrack">
+              <div class="slider-item">
+                <div class="icon-circle">📋</div>
+                <h3>Kopyala ve Yapıştır</h3>
+                <p>
+                  Şüphelendiğiniz e-posta metnini, SMS içeriğini veya size
+                  gönderilen bağlantıyı saniyeler içinde analiz kutusuna
+                  aktarın.
+                </p>
+              </div>
+
+              <div class="slider-item">
+                <div class="icon-circle">🔍</div>
+                <h3>Derinlemesine Analiz</h3>
+                <p>
+                  Ruby, gelişmiş algoritmalarıyla görünmez karakterleri, sahte
+                  domainleri ve manipülatif dil baskılarını anında tarar.
+                </p>
+              </div>
+
+              <div class="slider-item">
+                <div class="icon-circle">🛡️</div>
+                <h3>Güvenlik Raporu</h3>
+                <p>
+                  Detaylı risk puanını inceleyin, arka planda yatan gizli
+                  tehditleri keşfedin ve dijital dünyada güvende kalın.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="slider-header">
+            <div class="slider-indicators">
+              <span class="indicator active" data-slide="0"></span>
+              <span class="indicator" data-slide="1"></span>
+              <span class="indicator" data-slide="2"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="blog-container">
+          <div class="section-header">
+            <h2>Gözünüzden Kaçabilecek Bazı Dikkatsizlikler</h2>
+            <p>
+              Siber saldırganların sizi tuzağa düşürmek için kullandığı yaygın
+              ve gizli taktikleri keşfedin.
+            </p>
+          </div>
+
+          <div class="blog-item">
+            <div class="blog-text">
+              <div class="blog-title-wrap">
+                <span class="blog-icon">🏛️</span>
+                <h3>Otorite Kullanımı</h3>
+              </div>
+              <p>
+                Mail, yönetici veya avukat gibi üst düzey bir kurum tarafından
+                gönderilmiş gibi mi davranıyor?
+              </p>
+            </div>
+            <div class="blog-visual">
+              <div class="mockup-window">
+                <div class="mockup-header">
+                  <span class="mockup-avatar">CEO</span>
+                  <div class="mockup-sender">
+                    <strong>Genel Müdürlük</strong>
+                    <span>ceo@sirket-mail.com</span>
+                  </div>
+                </div>
+                <div class="mockup-line long"></div>
+                <div class="mockup-line medium"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-item">
+            <div class="blog-text">
+              <div class="blog-title-wrap">
+                <span class="blog-icon">🎁</span>
+                <h3>Merak Uyandırma</h3>
+              </div>
+              <p>
+                "Sizinle ilgili sızdırılan fotoğraflar" veya "Ödül kazandınız"
+                gibi manipülatif içerikler var mı?
+              </p>
+            </div>
+            <div class="blog-visual">
+              <div class="mockup-alert">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                  <strong>Hesabınız Kısıtlandı!</strong>
+                  <span>Kısıtlamayı kaldırmak için tıklayın.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-item">
+            <div class="blog-text">
+              <div class="blog-title-wrap">
+                <span class="blog-icon">🔤</span>
+                <h3>Görünmez Karakterler</h3>
+              </div>
+              <p>
+                Domain isminde Latin alfabesi dışında, görsel olarak benzer
+                (Kiril/Yunan harfleri) karakterler var mı?
+              </p>
+            </div>
+            <div class="blog-visual">
+              <div class="mockup-url-box">
+                <span class="safe-text">https://www.</span>g<span
+                  class="danger-text"
+                  >о</span
+                >ogle.com
+                <div class="tooltip">Kiril alfabesinden "o" harfi (U+043E)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-item">
+            <div class="blog-text">
+              <div class="blog-title-wrap">
+                <span class="blog-icon">🕵️</span>
+                <h3>Header Tutarsızlığı</h3>
+              </div>
+              <p>
+                Görünen isim ile gerçek gönderici e-posta adresi
+                (Return-Path/Envelope-From) eşleşiyor mu?
+              </p>
+            </div>
+            <div class="blog-visual">
+              <div class="mockup-window">
+                <div class="code-line">
+                  Görünen Ad: <span class="safe-text">Apple Destek</span>
+                </div>
+                <div class="code-line">
+                  Gerçek Adres:
+                  <span class="danger-text">hacker99@mail.ru</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blog-item">
+            <div class="blog-text">
+              <div class="blog-title-wrap">
+                <span class="blog-icon">🔗</span>
+                <h3>Görsel Linkleri</h3>
+              </div>
+              <p>
+                Mail içindeki logolar veya butonlar, kurumsal adres yerine başka
+                bir dış siteye mi yönlendiriyor?
+              </p>
+            </div>
+            <div class="blog-visual">
+              <div class="mockup-button-wrap">
+                <div class="mockup-btn">Şifremi Sıfırla</div>
+                <div class="cursor-pointer">👆</div>
+                <div class="mockup-tooltip">
+                  Yönlendirme: http://bit.ly/xyz-scam
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="tab-history" style="display: none">
+        <section class="container">
+          <div class="form-card" style="margin-top: 40px">
+            <h1>Analiz Geçmişi</h1>
+            <p>Daha önce yaptığınız analizlerin listesi aşağıdadır.</p>
+            <ul id="historyList" class="history-list"></ul>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <a href="#" class="back-to-top">↑</a>
+
+    <footer>
+      <div class="footer-container">
+        <div class="footer-info">
+          <h3>Ruby</h3>
+          <p>Dijital güvenliğinizi yapay zeka ile koruyun.</p>
+        </div>
+        <div class="footer-copyright">
+          <p>© 2026 Ruby. Tüm hakları saklıdır.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
