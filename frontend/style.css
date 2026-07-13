@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
+/* ==========================================================
+   GENEL AYARLAR
+   ========================================================== */
+
 * {
   box-sizing: border-box;
 }
@@ -17,12 +21,54 @@ body {
   flex-direction: column;
 }
 
-/* --- Sekme Metinleri ve Aktif Durumu (Yakut Alt Çizgi) --- */
+
+/* ==========================================================
+   HEADER / ÜST MENÜ
+   ========================================================== */
+
+.main-header {
+  background-color: #ffffff;
+  padding: 10px 30px;
+  height: 70px;
+  margin: 20px auto;
+  width: 70%;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.main-header .title {
+  margin-left: 20px;
+  color: #1e2329;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.main-nav_ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.main-nav_li {
+  display: inline-block;
+  margin: 0 15px;
+}
+
+.main-nav_li a {
+  color: #1e2329;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Menüdeki aktif sekmeyi vurgulamak için */
 .main-nav_li a, .main-header .title {
   position: relative;
-  text-decoration: none;
   padding-bottom: 6px;
-  color: #1e2329;
   transition: color 0.3s ease;
 }
 
@@ -42,7 +88,11 @@ body {
   border-radius: 2px;
 }
 
-/* --- Sade ve Modern Sayfa Geçiş Efekti (Fade & Slide Up) --- */
+
+/* ==========================================================
+   SAYFA GEÇİŞLERİ (Ana sayfa / Geçmiş sekmesi arası)
+   ========================================================== */
+
 @keyframes smoothFade {
   0% {
     opacity: 0;
@@ -58,57 +108,24 @@ body {
   animation: smoothFade 0.35s ease-out forwards;
 }
 
-/* --- 1. Header (Üst Menü) --- */
-.main-header {
-  background-color: #ffffff;
-  padding: 10px 30px;
-  height: 70px;
-  margin: 20px auto;
-  width: 70%;
-  border-radius: 50px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.main-header .title {
-  margin-left: 20px;
-  color: #1e2329;
-  text-decoration: none;
-  font-size: 20px;
-  font-weight: 700;
-}
-.main-nav_ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-.main-nav_li {
-  display: inline-block;
-  margin: 0 15px;
-}
-.main-nav_li a {
-  color: #1e2329;
-  font-size: 16px;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-/* --- 2. Main Wrapper --- */
 .main-wrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
 }
 
-/* --- 3. YENİ HERO SECTION --- */
+
+/* ==========================================================
+   HERO (GİRİŞ) BÖLÜMÜ
+   ========================================================== */
+
 .hero-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
   max-width: 1400px;
   min-height: calc(100vh - 110px);
-  margin: 0 auto; 
+  margin: 0 auto;
   padding: 0 40px;
   gap: 100px;
 }
@@ -174,13 +191,12 @@ body {
   border-radius: 0;
 }
 
-/* YUKARI AŞAĞI SÜZÜLME (BOBBING) ANİMASYONU */
+/* görsel hafifçe yukarı aşağı süzülsün diye */
 @keyframes floatBob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
 }
 
-/* Hero - Mobil Uyumluluk */
 @media (max-width: 900px) {
   .hero-section {
     flex-direction: column;
@@ -201,7 +217,11 @@ body {
   }
 }
 
-/* --- 4. Form Card & Input --- */
+
+/* ==========================================================
+   ANALİZ FORMU (Form Card)
+   ========================================================== */
+
 .container {
   display: flex;
   justify-content: center;
@@ -250,6 +270,7 @@ body {
   width: 100%;
   min-height: 150px;
   padding: 16px;
+  padding-right: 45px; /* sağ üstteki X butonuna yer açmak için */
   border: 1px solid #d1d5db;
   border-radius: 12px;
   font-size: 16px;
@@ -267,22 +288,10 @@ body {
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Minimal Temizle (X) Butonu --- */
+/* textarea içindeki temizle (X) butonu */
 .textarea-wrapper {
   position: relative;
   width: 100%;
-}
-
-.content-body textarea {
-  width: 100%;
-  min-height: 150px;
-  padding: 16px;
-  padding-right: 45px; /* Yazıların X butonunun altına girmemesi için sağdan boşluk */
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-size: 16px;
-  resize: vertical;
-  transition: all 0.3s;
 }
 
 .minimal-clear-btn {
@@ -307,7 +316,7 @@ body {
 .minimal-clear-btn:hover {
   background: #e2e8f0;
   color: #1e2329;
-  transform: scale(1.1); /* Üzerine gelince tatlı bir büyüme efekti */
+  transform: scale(1.1);
 }
 
 .btn {
@@ -321,6 +330,7 @@ body {
   font-weight: 700;
   transition: all 0.5s;
 }
+
 .btn:hover {
   background-color: #1e2329;
 }
@@ -331,7 +341,11 @@ body {
   opacity: 0.8;
 }
 
-/* --- 4b. Result Card --- */
+
+/* ==========================================================
+   ANALİZ SONUÇ KARTI
+   ========================================================== */
+
 .result-card {
   display: none;
   margin-top: 24px;
@@ -361,10 +375,12 @@ body {
   background: #e3f6e8;
   color: #1e7a3a;
 }
+
 .result-badge.risk-orta {
   background: #fff3d6;
   color: #a3690b;
 }
+
 .result-badge.risk-yüksek {
   background: #fde3e3;
   color: #b0231c;
@@ -380,12 +396,17 @@ body {
   padding-left: 20px;
   color: #333;
 }
+
 .result-list li {
   margin-bottom: 8px;
   line-height: 1.5;
 }
 
-/* --- 5. Etkileşimli Özellikler (Slider) --- */
+
+/* ==========================================================
+   ÖZELLİKLER SLIDER'I
+   ========================================================== */
+
 .features-slider-section {
   width: 100%;
   max-width: 800px;
@@ -413,39 +434,36 @@ body {
   margin: 0 auto 20px auto;
 }
 
-
-/* İndikatörler (Noktalar ve Çizgi) */
-
+/* alttaki noktalar (indicator) */
 .slider-indicators {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px; /* Noktalar arası boşluğu biraz açtık */
+  gap: 12px;
   margin-bottom: 25px;
 }
 
 .indicator {
-  width: 12px; /* 8px'den 12px'e büyüttük */
-  height: 12px; /* 8px'den 12px'e büyüttük */
+  width: 12px;
+  height: 12px;
   background-color: #cbd5e1;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Fare ile üzerine gelince büyüme efekti */
 .indicator:hover {
   transform: scale(1.4);
   background-color: #a0aec0;
 }
 
 .indicator.active {
-  width: 45px; /* Aktif çizgi boyunu orantılı olarak uzattık */
+  width: 45px;
   background: linear-gradient(90deg, #ff3b3b, #a60000);
 }
 
 .indicator.active:hover {
-  transform: scale(1.05); /* Aktif olanın üzerine gelince çok hafif büyüsün */
+  transform: scale(1.05);
 }
 
 .slider-viewport {
@@ -514,7 +532,39 @@ body {
   transform: translateY(-2px);
 }
 
-/* --- 6. Blogs / Bilgilendirme (Yeni SS Görünümü) --- */
+
+/* ==========================================================
+   BİLGİLENDİRME BÖLÜMÜ (Blog kartları)
+   ========================================================== */
+
+.section-header {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.section-header h2 {
+  font-size: 2.2rem;
+  color: #1e2329;
+  margin: 0 0 15px 0;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.section-header p {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin: 0 auto;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .section-header h2 {
+    font-size: 1.8rem;
+  }
+}
+
 .blog-container {
   width: 100%;
   max-width: 1000px;
@@ -542,6 +592,7 @@ body {
   transform: translateY(-5px);
 }
 
+/* çift sıradaki kartları ters çevirip zikzak görünüm verdik */
 .blog-item:nth-child(even) {
   flex-direction: row-reverse;
 }
@@ -592,41 +643,22 @@ body {
   border: 1px solid #cbd5e1;
 }
 
-/* --- Bölüm Başlığı (Section Header) --- */
-.section-header {
-  text-align: center;
-  width: 100%;
-  margin-bottom: 10px; 
-}
-
-.section-header h2 {
-  font-size: 2.2rem;
-  color: #1e2329;
-  margin: 0 0 15px 0;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
-
-.section-header p {
-  font-size: 1.1rem;
-  color: #4a5568;
-  margin: 0 auto;
-  max-width: 600px;
-  line-height: 1.6;
-}
-
 @media (max-width: 768px) {
-  .section-header h2 {
-    font-size: 1.8rem;
+  .blog-item, .blog-item:nth-child(even) {
+    flex-direction: column;
+    gap: 30px;
+  }
+  .blog-visual {
+    width: 100%;
   }
 }
 
-/* --- İçerikteki CSS Mockup (Şematik Görseller) --- */
+/* blog kartlarındaki örnek arayüz görselleri (mockup'lar) */
 .mockup-window {
   width: 100%;
   background: #ffffff;
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -656,13 +688,17 @@ body {
   flex-direction: column;
   font-size: 0.85rem;
 }
-.mockup-sender span { color: #94a3b8; }
+
+.mockup-sender span {
+  color: #94a3b8;
+}
 
 .mockup-line {
   height: 8px;
   background: #e2e8f0;
   border-radius: 4px;
 }
+
 .mockup-line.long { width: 100%; }
 .mockup-line.medium { width: 60%; }
 
@@ -692,7 +728,7 @@ body {
   font-family: monospace;
   font-size: 1.1rem;
   position: relative;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 .danger-text { color: #ff4b4b; font-weight: bold; }
@@ -761,22 +797,17 @@ body {
   box-shadow: 0 5px 15px rgba(255, 75, 75, 0.1);
 }
 
-@media (max-width: 768px) {
-  .blog-item, .blog-item:nth-child(even) {
-    flex-direction: column;
-    gap: 30px;
-  }
-  .blog-visual {
-    width: 100%;
-  }
-}
 
-/* --- 7. Geçmiş Listesi --- */
+/* ==========================================================
+   GEÇMİŞ LİSTESİ
+   ========================================================== */
+
 .history-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
+
 .history-item {
   background: #f8f9fb;
   border: 1px solid #e4eaf2;
@@ -786,10 +817,12 @@ body {
   text-align: left;
   transition: all 0.3s ease;
 }
+
 .history-item:hover {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   border-color: #d1d5db;
 }
+
 .history-item p {
   color: #4a5568;
   font-size: 0.95rem;
@@ -797,13 +830,18 @@ body {
   word-break: break-word;
 }
 
-/* --- 8. Footer & Back to top --- */
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
 footer {
   background-color: #ffffff;
   border-top: 1px solid #e4eaf2;
   padding: 60px 20px 40px 20px;
   margin-top: 50px;
 }
+
 .footer-container {
   max-width: 1000px;
   margin: 0 auto;
@@ -812,15 +850,18 @@ footer {
   align-items: center;
   gap: 20px;
 }
+
 .footer-info h3 {
   margin: 0;
   font-size: 1.5rem;
   color: #1e2329;
 }
+
 .footer-info p {
   color: #666;
   margin: 5px 0 0 0;
 }
+
 .footer-copyright {
   margin-top: 20px;
   font-size: 0.8rem;
@@ -847,6 +888,7 @@ footer {
   z-index: 1000;
   opacity: 0.8;
 }
+
 .back-to-top:hover {
   background-color: #000000;
   opacity: 1;
