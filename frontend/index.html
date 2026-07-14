@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ruby Tool</title>
+    <title>Ruby</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png" />
+    <link rel="icon" href="img/favicon.ico" />
+    <link rel="manifest" href="img/site.webmanifest" />
+
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
   </head>
@@ -16,7 +23,7 @@
             <a href="#" id="nav-history">Geçmiş</a>
           </li>
           <li class="main-nav_li">
-            <a href="#">Profil</a>
+            <a href="#" id="nav-profil">Profil</a>
           </li>
         </ul>
       </nav>
@@ -256,14 +263,152 @@
 
       <div id="tab-history" style="display: none">
         <section class="container">
-          <div class="form-card" style="margin-top: 40px">
-            <h1>Analiz Geçmişi</h1>
-            <p>Daha önce yaptığınız analizlerin listesi aşağıdadır.</p>
+          <div class="form-card" style="margin-top: 40px; max-width: 800px">
+            <div class="history-header-wrap">
+              <div>
+                <h1>Analiz Geçmişi</h1>
+                <p>Daha önce yaptığınız analizlerin listesi aşağıdadır.</p>
+              </div>
+              <div class="history-controls">
+                <select id="historyFilter" class="history-filter">
+                  <option value="All">Tümü</option>
+                  <option value="Yüksek">Yüksek Risk</option>
+                  <option value="Orta">Orta Risk</option>
+                  <option value="Düşük">Düşük Risk</option>
+                </select>
+                <button id="clearHistoryBtn" class="btn-danger">
+                  Tümünü Temizle
+                </button>
+              </div>
+            </div>
             <ul id="historyList" class="history-list"></ul>
           </div>
         </section>
       </div>
+
+      <div id="tab-profil" style="display: none">
+        <section class="container">
+          <div class="form-card profil-card" style="margin-top: 40px">
+            <div class="profil-ust">
+              <div class="profil-avatar">RB</div>
+              <div class="profil-bilgi">
+                <h1>Kullanıcı</h1>
+                <p class="profil-mail">kullanici@ornek.com</p>
+              </div>
+            </div>
+
+            <div class="profil-istatistik">
+              <div class="istatistik-kutu">
+                <span class="istatistik-sayi" id="toplamAnalizSayisi">0</span>
+                <span class="istatistik-etiket">Toplam Analiz</span>
+              </div>
+              <div class="istatistik-kutu">
+                <span class="istatistik-sayi" id="yuksekRiskSayisi">0</span>
+                <span class="istatistik-etiket">Yüksek Risk</span>
+              </div>
+            </div>
+
+            <p class="profil-not">
+              Not: Kullanıcı hesabı ve giriş sistemi henüz eklenmedi, bu
+              bilgiler şu an örnektir.
+            </p>
+          </div>
+        </section>
+      </div>
     </main>
+
+    <section class="faq-section">
+      <div class="section-header">
+        <h2>Sıkça Sorulan Sorular</h2>
+        <p>
+          Ruby ve dijital güvenlik asistanınız hakkında en çok merak edilenler.
+        </p>
+      </div>
+      <div class="faq-container">
+        <div class="faq-item">
+          <button class="faq-question">
+            Ruby tam olarak ne işe yarar? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+              <p>
+                Ruby, size gelen şüpheli e-posta, SMS veya bağlantıları
+                (linkleri) gelişmiş yapay zeka algoritmalarıyla analiz ederek
+                oltalama (phishing) saldırılarına karşı sizi koruyan dijital bir
+                güvenlik asistanıdır.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Analiz işlemi ne kadar sürer? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+              <p>
+                Gelişmiş mimarimiz sayesinde analiz işlemi genellikle saniyeler
+                içinde tamamlanır. Sistem, metni ve bağlantıları tarayarak size
+                anında detaylı bir risk skoru ve raporu sunar.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Kişisel verilerim analiz sırasında kaydediliyor mu?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+              <p>
+                Gizliliğiniz bizim için ön plandadır. Analiz için
+                yapıştırdığınız içerikler yalnızca o anki güvenlik taraması için
+                işlenir ve analiz bittikten sonra sizin kendi "Geçmiş" sekmeniz
+                dışında hiçbir veritabanında açık metin olarak saklanmaz.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Hangi tür tehditleri tespit edebilir?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+              <p>
+                Ruby; sahte ve manipüle edilmiş domainleri, Kiril/Yunan
+                alfabesiyle gizlenmiş görünmez karakterleri, sahte gönderici
+                adreslerini ve kurbanı paniğe sürükleyen psikolojik baskı
+                dillerini başarıyla tespit eder.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Sisteminiz %100 doğru sonuç verir mi?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer-wrapper">
+            <div class="faq-answer">
+              <p>
+                Yapay zeka modellerimiz sürekli öğrenip gelişse de, siber
+                saldırı yöntemleri sürekli değiştiği için hiçbir güvenlik aracı
+                %100 garanti veremez. Ruby size çok yüksek doğrulukta bir
+                rehberlik sunar, ancak bağlantılara tıklarken son kontrol her
+                zaman sizin inisiyatifinizdedir.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <a href="#" class="back-to-top">↑</a>
 

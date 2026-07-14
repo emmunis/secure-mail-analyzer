@@ -121,34 +121,100 @@ function sonucuGoster(sonuc) {
   card.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-function gecmisiListele() {
+function gecmisiListele(filtre = "All") {
   const gecmis = gecmisiGetir();
   const list = document.getElementById("historyList");
   list.innerHTML = "";
 
-  if (gecmis.length === 0) {
-    list.innerHTML = "<p>Henüz bir analiz geçmişiniz bulunmuyor.</p>";
+  // Filtreleme işlemi ve orijinal index'i koruma
+  const filtrelenmis = gecmis
+    .map((item, index) => ({ ...item, originalIndex: index }))
+    .filter(item => filtre === "All" || item.seviye === filtre);
+
+  if (filtrelenmis.length === 0) {
+    list.innerHTML = "<p>Bu kritere uygun geçmiş kaydı bulunmuyor.</p>";
     return;
   }
 
-  gecmis.forEach((item) => {
+  filtrelenmis.forEach((item) => {
     const li = document.createElement("li");
-    li.className = "history-item";
+    li.className = "history-item accordion-item";
 
-    const kisaIcerik = item.icerik.length > 120
-      ? item.icerik.substring(0, 120) + "..."
-      : item.icerik;
+    // 10 üzerinden skor gösterimi
+    const skor = Math.min(item.riskPuani, 10); 
 
     li.innerHTML = `
-      <div class="result-header" style="margin-bottom: 10px;">
-        <span class="result-badge risk-${item.seviye.toLowerCase()}">${item.seviye} Risk</span>
-        <span class="result-score">${item.tarih}</span>
+      <div class="history-item-header">
+        <div class="header-left">
+          <span class="result-badge risk-${item.seviye.toLowerCase()}">${item.seviye} Risk (${skor}/10)</span>
+          <span class="result-score" style="margin-left: 10px;">${item.tarih}</span>
+        </div>
+        <button class="delete-history-btn" title="Bu kaydı sil">✕</button>
       </div>
-      <p><strong>İncelenen:</strong> ${kisaIcerik}</p>
-      <p style="margin-top: 8px; font-size: 0.85rem;"><strong>Tespit Edilenler:</strong> ${item.bulunanRiskler.join(', ')}</p>
+      <div class="history-summary">
+        <p><strong>İncelenen:</strong> ${item.icerik.length > 80 ? item.icerik.substring(0, 80) + "..." : item.icerik}</p>
+        <span class="expand-hint">Detayları görmek için tıklayın ▼</span>
+      </div>
+      <div class="history-details" style="display: none;">
+        <p><strong>Tam İçerik:</strong><br>${item.icerik}</p>
+        <p style="margin-top: 10px;"><strong>Tespit Edilen Riskler:</strong></p>
+        <ul style="margin-top: 5px; padding-left: 20px;">
+          ${item.bulunanRiskler.map(r => `<li>${r}</li>`).join('')}
+        </ul>
+      </div>
     `;
+
+    // Genişletme/Daraltma Olayı
+    li.addEventListener("click", function(e) {
+      if (e.target.classList.contains("delete-history-btn")) return;
+      
+      if (e.target.closest(".history-details")) return;
+      
+      if (window.getSelection().toString() !== "") return;
+      
+      const details = this.querySelector(".history-details");
+      const hint = this.querySelector(".expand-hint");
+      if (details.style.display === "none") {
+        details.style.display = "block";
+        hint.textContent = "Detayları gizle ▲";
+        this.style.borderColor = "#a0aec0";
+      } else {
+        details.style.display = "none";
+        hint.textContent = "Detayları görmek için tıklayın ▼";
+        this.style.borderColor = "#e4eaf2";
+      }
+    });
+
+    // Tekil Silme Olayı
+    const deleteBtn = li.querySelector(".delete-history-btn");
+    deleteBtn.addEventListener("click", function(e) {
+      e.stopPropagation(); // Tıklamanın akordeonu açmasını engelle
+      if (confirm("Bu analizi geçmişten silmek istediğinize emin misiniz?")) {
+        const guncelGecmis = gecmisiGetir();
+        guncelGecmis.splice(item.originalIndex, 1);
+        localStorage.setItem("analizGecmisi", JSON.stringify(guncelGecmis));
+        
+        const guncelFiltre = document.getElementById("historyFilter").value;
+        gecmisiListele(guncelFiltre); // Listeyi yenile
+        profilIstatistikGuncelle();
+      }
+    });
+
     list.appendChild(li);
   });
+}
+
+
+
+
+
+function profilIstatistikGuncelle() {
+  const gecmis = gecmisiGetir();
+  const toplamEl = document.getElementById("toplamAnalizSayisi");
+  const yuksekEl = document.getElementById("yuksekRiskSayisi");
+
+  toplamEl.textContent = gecmis.length;
+  yuksekEl.textContent = gecmis.filter((item) => item.seviye === "Yüksek").length;
 }
 
 
@@ -161,27 +227,37 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- 4.1 Sekme (Tab) Yönlendirmeleri --- */
   const navRuby = document.getElementById("nav-ruby");
   const navHistory = document.getElementById("nav-history");
+  const navProfil = document.getElementById("nav-profil");
+
   const tabMain = document.getElementById("tab-main");
   const tabHistory = document.getElementById("tab-history");
+  const tabProfil = document.getElementById("tab-profil");
 
-  function sekmeyeGec(aktifNav, digerNav, gosterilecek, gizlenecek) {
-    gosterilecek.style.display = "block";
-    gizlenecek.style.display = "none";
-    aktifNav.classList.add("active");
-    digerNav.classList.remove("active");
+  const tumNavlar = [navRuby, navHistory, navProfil];
+  const tumTablar = [tabMain, tabHistory, tabProfil];
+
+  function sekmeyeGec(aktifNav, aktifTab) {
+    tumTablar.forEach((tab) => (tab.style.display = tab === aktifTab ? "block" : "none"));
+    tumNavlar.forEach((nav) => nav.classList.toggle("active", nav === aktifNav));
   }
 
   navRuby.classList.add("active"); // sayfa ilk açıldığında ana sekme aktif
 
   navRuby.addEventListener("click", (e) => {
     e.preventDefault();
-    sekmeyeGec(navRuby, navHistory, tabMain, tabHistory);
+    sekmeyeGec(navRuby, tabMain);
   });
 
   navHistory.addEventListener("click", (e) => {
     e.preventDefault();
-    sekmeyeGec(navHistory, navRuby, tabHistory, tabMain);
+    sekmeyeGec(navHistory, tabHistory);
     gecmisiListele();
+  });
+
+  navProfil.addEventListener("click", (e) => {
+    e.preventDefault();
+    sekmeyeGec(navProfil, tabProfil);
+    profilIstatistikGuncelle();
   });
 
 
@@ -280,3 +356,39 @@ document.addEventListener("DOMContentLoaded", () => {
   otomatikGeciriBaslat();
 
 });
+
+
+/* --- 4.4 Geçmiş Filtreleme ve Tümünü Temizleme --- */
+  const historyFilter = document.getElementById("historyFilter");
+  if (historyFilter) {
+    historyFilter.addEventListener("change", (e) => {
+      gecmisiListele(e.target.value);
+    });
+  }
+
+  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener("click", () => {
+      const gecmis = gecmisiGetir();
+      if (gecmis.length === 0) return alert("Silinecek geçmiş bulunmuyor.");
+      
+      if (confirm("Tüm analiz geçmişini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) {
+        localStorage.removeItem("analizGecmisi");
+        gecmisiListele("All");
+        profilIstatistikGuncelle();
+      }
+    });
+  }
+
+
+/* --- 4.5 FAQ Akordeon Yapısı (Animasyonlu) --- */
+  const faqQuestions = document.querySelectorAll(".faq-question");
+  
+  faqQuestions.forEach(btn => {
+    btn.addEventListener("click", function() {
+      this.classList.toggle("active");
+      
+      const wrapper = this.nextElementSibling;
+      wrapper.classList.toggle("open");
+    });
+  });
