@@ -2211,11 +2211,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\rubyapi\\RubyApi.csproj",
+      "projectUniqueName": "c:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\RubyApi\\RubyApi.csproj",
       "projectName": "RubyApi",
-      "projectPath": "C:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\rubyapi\\RubyApi.csproj",
+      "projectPath": "c:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\RubyApi\\RubyApi.csproj",
       "packagesPath": "C:\\Users\\emirp\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\rubyapi\\obj\\",
+      "outputPath": "c:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\RubyApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\emirp\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -2707,7 +2707,7 @@
       "code": "NU1903",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "'Microsoft.OpenApi' 2.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-v5pm-xwqc-g5wc güvenlik açığı var",
+      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
       "libraryId": "Microsoft.OpenApi",
       "targetGraphs": [
         "net10.0"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "OCR2Hc+ulWM=",
+  "dgSpecHash": "WDhMN2f7dYA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\rubyapi\\RubyApi.csproj",
+  "projectFilePath": "c:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\RubyApi\\RubyApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\emirp\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\emirp\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.9\\microsoft.aspnetcore.openapi.10.0.9.nupkg.sha512",
@@ -37,10 +37,10 @@
     {
       "code": "NU1903",
       "level": "Warning",
-      "message": "'Microsoft.OpenApi' 2.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-v5pm-xwqc-g5wc güvenlik açığı var",
-      "projectPath": "C:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\rubyapi\\RubyApi.csproj",
+      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
+      "projectPath": "c:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\RubyApi\\RubyApi.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\rubyapi\\RubyApi.csproj",
+      "filePath": "c:\\Users\\emirp\\Desktop\\StajProjesi\\secure-mail-analyzer\\backend\\RubyApi\\RubyApi.csproj",
       "libraryId": "Microsoft.OpenApi",
       "targetGraphs": [
         "net10.0"

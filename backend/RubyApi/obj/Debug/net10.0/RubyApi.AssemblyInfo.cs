@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RubyApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+86fee0630e1ca771a5e36003d2fa6d5a3f5b9954")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d25e92e6dcac75b2d07e94b9e85e8e14833a1c0c")]
 [assembly: System.Reflection.AssemblyProductAttribute("RubyApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RubyApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

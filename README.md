@@ -6,7 +6,7 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 
 ## Durum
 
-Şu anda **statik prototip** aşamasındadır (HTML / CSS / JavaScript). Backend ve veritabanı entegrasyonu henüz başlanmamıştır.
+Frontend prototipi tamamlanmış, **backend ve veritabanı entegrasyonu aktif olarak çalışmaktadır**. Analiz işlemleri artık .NET Web API üzerinden gerçekleştirilmekte, sonuçlar Supabase (PostgreSQL) veritabanında kalıcı olarak saklanmaktadır.
 
 ## Tamamlanan Özellikler
 
@@ -32,9 +32,9 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 <details>
 <summary><strong>Geçmiş sekmesi</strong></summary>
 
-- Önceki analizlerin listelenmesi (şu an tarayıcı `localStorage`'ında saklanıyor)
+- Önceki analizlerin listelenmesi (Supabase veritabanından çekiliyor)
 - Risk seviyesine göre filtreleme (düşük / orta / yüksek / tümü)
-- Tekil kayıt silme (onay istemiyle)
+- Tekil kayıt silme (onay istemiyle, backend'den kalıcı olarak siliniyor)
 - Tüm geçmişi toplu temizleme (onay istemiyle)
 - Kayıt üzerine tıklayınca tam içerik ve tespit edilen risklerin genişleyerek görüntülenmesi
 </details>
@@ -42,8 +42,8 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 <details>
 <summary><strong>Profil sekmesi</strong></summary>
 
-- Toplam analiz sayısı ve yüksek risk sayısını gösteren istatistik kartı
-- Kullanıcı hesabı/giriş sistemi henüz yok, örnek verilerle çalışıyor
+- Toplam analiz sayısı ve yüksek risk sayısını gösteren istatistik kartı (Supabase'ten canlı veriyle hesaplanıyor)
+- Kullanıcı hesabı/giriş sistemi henüz yok, kullanıcı bilgileri örnek veridir
 </details>
 
 <details>
@@ -62,16 +62,28 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 - Mobil görünüm (600px ve altı) için özel düzenlemeler
 </details>
 
+<details>
+<summary><strong>Backend ve Veritabanı</strong></summary>
+
+- .NET Web API projesi (`RubyApi`) oluşturuldu ve Supabase (PostgreSQL) veritabanına Entity Framework Core ile bağlandı
+- Analiz mantığı JavaScript'ten C#'a taşındı (`AnalizServisi`)
+- `POST /api/analiz` — içerik gönderip analiz sonucu alma ve veritabanına kaydetme
+- `GET /api/analiz` — geçmiş analizleri listeleme
+- `DELETE /api/analiz/{id}` — tekil kayıt silme
+- `DELETE /api/analiz/tumunu-sil` — tüm geçmişi toplu silme
+- CORS yapılandırması ile frontend'in API'ye tarayıcı üzerinden erişimi sağlandı
+- Bağlantı bilgileri `user-secrets` ile güvenli şekilde saklanıyor (koda veya Git'e yazılmıyor)
+</details>
+
 ## Kullanılan Teknolojiler (Mevcut)
 
-- HTML5
-- CSS3
-- JavaScript
+- HTML5, CSS3, JavaScript (frontend)
+- .NET Web API (backend)
+- Entity Framework Core + Npgsql (veritabanı erişimi)
+- PostgreSQL (Supabase üzerinden)
 
 ## Planlanan Teknolojiler
 
-- **Backend:** .NET Web API
-- **Veritabanı:** PostgreSQL (Supabase üzerinden)
 - **Frontend:** React'e geçiş
 - **Container:** Docker, Docker Compose
 - **Orkestrasyon:** Kubernetes (Minikube / Docker Desktop)
@@ -82,20 +94,34 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 ```
 secure-mail-analyzer/
 ├── frontend/          # Statik prototip (HTML/CSS/JS)
-├── backend/           # .NET Web API (henüz başlanmadı)
-├── database/          # Veritabanı yapılandırması (henüz başlanmadı)
+├── backend/
+│   └── RubyApi/       # .NET Web API projesi
+├── database/          # Veritabanı yapılandırması (Supabase üzerinden yönetiliyor)
 ├── k8s/               # Kubernetes YAML dosyaları (henüz başlanmadı)
 ├── docs/              # Ekran görüntüleri ve dokümantasyon
 ├── docker-compose.yml # (henüz eklenmedi)
 └── README.md
 ```
 
-## Kurulum ve Çalıştırma (Mevcut Prototip)
+## Kurulum ve Çalıştırma
 
-Şu an için ekstra bir kurulum gerekmiyor:
+### Frontend
 
 1. Repoyu klonlayın: `git clone <repo-linki>`
 2. `frontend/index.html` dosyasını bir tarayıcıda açın.
+
+### Backend
+
+1. `.NET 10 SDK` kurulu olmalıdır.
+2. `backend/RubyApi` klasörüne girin.
+3. Supabase (PostgreSQL) bağlantı bilgisini `user-secrets` ile tanımlayın:
+   ```
+   dotnet user-secrets set "ConnectionStrings:RubyDb" "Host=...;Port=5432;Database=postgres;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true"
+   ```
+4. Veritabanı migration'larını uygulayın: `dotnet ef database update`
+5. API'yi çalıştırın: `dotnet run` (varsayılan olarak `http://localhost:5108` üzerinden yayınlanır)
+
+> Not: Bağlantı bilgileri hiçbir zaman koda veya Git'e yazılmaz, yalnızca yerel `user-secrets` deposunda tutulur.
 
 ## Geliştirme Geçmişi (Fazlar)
 
@@ -108,17 +134,25 @@ HTML, CSS ve vanilla JavaScript ile geliştirilen ilk prototip. Analiz formu, ku
 </details>
 
 <details>
-<summary><strong>Faz 2 — Backend ve Veritabanı</strong> <em>(devam ediyor)</em></summary>
+<summary><strong>Faz 2 — Backend ve Veritabanı</strong> <code>v0.2-backend</code></summary>
 
-.NET Web API ile Supabase (PostgreSQL) bağlantısı kurulacak, analiz mantığı backend'e taşınacaktır.
+.NET Web API projesi oluşturuldu, Supabase (PostgreSQL) veritabanına Entity Framework Core ile bağlanıldı. Analiz mantığı C#'a taşındı; analiz yapma, geçmişi listeleme, tekil/toplu silme endpoint'leri geliştirildi. CORS yapılandırması ile frontend gerçek API'ye bağlandı, veriler artık `localStorage` yerine veritabanında kalıcı olarak tutuluyor.
 </details>
+
+<details>
+<summary><strong>Faz 3 — React'e Geçiş</strong> <em>(planlanıyor)</em></summary>
+
+Mevcut arayüz, backend API'sini tüketen bir React uygulamasına dönüştürülecektir.
+</details>
+
 
 
 ## Yol Haritası
 
 - [x] Statik prototip (form, analiz, sonuç, geçmiş, profil, SSS)
-- [ ] .NET Web API kurulumu ve Supabase (PostgreSQL) bağlantısı
-- [ ] Analiz mantığının backend'e taşınması
+- [x] .NET Web API kurulumu ve Supabase (PostgreSQL) bağlantısı
+- [x] Analiz mantığının backend'e taşınması
+- [x] Geçmiş kayıtları silme (tekil ve toplu) endpoint'leri
 - [ ] React'e geçiş
 - [ ] Docker ve docker-compose yapılandırması
 - [ ] Kubernetes deployment dosyaları
