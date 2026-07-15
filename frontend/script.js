@@ -1,103 +1,13 @@
 /* ============================================================
-   1. ANALİZ MANTIĞI
-   Bu bölümdeki fonksiyonlar DOM'a dokunmaz, sadece veri işler.
-   İleride .NET Web API tarafına taşınacak asıl mantık burada.
+   1. VERİ ADRESİ
+   Analiz mantığı artık .NET Web API tarafında (AnalizServisi).
+   Bu dosya sadece backend'e istek atıp sonucu ekrana basıyor.
    ============================================================ */
-
-function analizEt(icerik) {
-  let riskPuani = 0;
-  const bulunanRiskler = [];
-  const metin = icerik.toLowerCase();
-
-  // Aciliyet / baskı dili
-  const aciliyetKelimeleri = [
-    "hemen", "acil", "şimdi tıklayın", "son gün",
-    "24 saat", "hesabınız kapatılacak", "son uyarı",
-  ];
-  if (aciliyetKelimeleri.some((k) => metin.includes(k))) {
-    riskPuani += 2;
-    bulunanRiskler.push("Aciliyet veya baskı dili tespit edildi");
-  }
-
-  // Kişisel veri / şifre / ödeme bilgisi talebi
-  const veriKelimeleri = [
-    "şifrenizi", "şifre", "kart numarası", "tc kimlik",
-    "hesap bilgileriniz", "cvv",
-  ];
-  if (veriKelimeleri.some((k) => metin.includes(k))) {
-    riskPuani += 3;
-    bulunanRiskler.push("Kişisel veri veya ödeme bilgisi talebi tespit edildi");
-  }
-
-  // Link kontrolleri
-  const linkRegex = /(https?:\/\/[^\s]+)|(\bwww\.[^\s]+)/i;
-  const linkEslesme = icerik.match(linkRegex);
-
-  if (linkEslesme) {
-    const link = linkEslesme[0];
-
-    if (!link.toLowerCase().startsWith("https://")) {
-      riskPuani += 1;
-      bulunanRiskler.push("Link HTTPS kullanmıyor");
-    }
-
-    if (link.length > 60) {
-      riskPuani += 1;
-      bulunanRiskler.push("Link uzunluğu şüpheli derecede fazla");
-    }
-
-    const kisalticilar = ["bit.ly", "tinyurl", "t.co", "cutt.ly", "shorturl"];
-    if (kisalticilar.some((k) => link.toLowerCase().includes(k))) {
-      riskPuani += 2;
-      bulunanRiskler.push("Link kısaltıcı servis kullanılmış");
-    }
-
-    const tireVeSayi = (link.match(/[-0-9]/g) || []).length;
-    if (tireVeSayi > 6) {
-      riskPuani += 1;
-      bulunanRiskler.push("Domain içinde fazla sayıda tire/rakam var");
-    }
-  }
-
-  // Bilinen marka taklidi
-  const markalar = ["paypal", "garanti", "ziraat", "apple", "microsoft", "trendyol"];
-  const gecenMarka = markalar.find((m) => metin.includes(m));
-  if (gecenMarka && !metin.includes(gecenMarka + ".com")) {
-    riskPuani += 2;
-    bulunanRiskler.push(`"${gecenMarka}" markası geçiyor, resmi domain ile eşleşmiyor olabilir`);
-  }
-
-  // Risk seviyesine çevir
-  let seviye = "Düşük";
-  if (riskPuani >= 5) seviye = "Yüksek";
-  else if (riskPuani >= 2) seviye = "Orta";
-
-  if (bulunanRiskler.length === 0) {
-    bulunanRiskler.push("Belirgin bir risk unsuru tespit edilmedi");
-  }
-
-  return { seviye, riskPuani, bulunanRiskler, tarih: new Date().toLocaleString("tr-TR") };
-}
+const API_BASE_URL = "http://localhost:5108/api/analiz";
 
 
 /* ============================================================
-   2. DEPOLAMA (localStorage)
-   Şimdilik geçici çözüm — ileride PostgreSQL'e taşınacak.
-   ============================================================ */
-
-function gecmiseKaydet(icerik, sonuc) {
-  const gecmis = JSON.parse(localStorage.getItem("analizGecmisi") || "[]");
-  gecmis.unshift({ icerik, ...sonuc });
-  localStorage.setItem("analizGecmisi", JSON.stringify(gecmis.slice(0, 20)));
-}
-
-function gecmisiGetir() {
-  return JSON.parse(localStorage.getItem("analizGecmisi") || "[]");
-}
-
-
-/* ============================================================
-   3. EKRANA BASMA (DOM güncellemeleri)
+   2. EKRANA BASMA (DOM güncellemeleri)
    ============================================================ */
 
 function sonucuGoster(sonuc) {
@@ -121,105 +31,127 @@ function sonucuGoster(sonuc) {
   card.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-function gecmisiListele(filtre = "All") {
-  const gecmis = gecmisiGetir();
+async function gecmisiListele(filtre = "All") {
   const list = document.getElementById("historyList");
-  list.innerHTML = "";
+  list.innerHTML = "<p>Yükleniyor...</p>";
 
-  // Filtreleme işlemi ve orijinal index'i koruma
-  const filtrelenmis = gecmis
-    .map((item, index) => ({ ...item, originalIndex: index }))
-    .filter(item => filtre === "All" || item.seviye === filtre);
+  try {
+    const response = await fetch(API_BASE_URL);
+    const veriler = await response.json();
 
-  if (filtrelenmis.length === 0) {
-    list.innerHTML = "<p>Bu kritere uygun geçmiş kaydı bulunmuyor.</p>";
-    return;
-  }
+    const filtrelenmis = filtre === "All"
+      ? veriler
+      : veriler.filter((item) => item.seviye === filtre);
 
-  filtrelenmis.forEach((item) => {
-    const li = document.createElement("li");
-    li.className = "history-item accordion-item";
+    list.innerHTML = "";
 
-    // 10 üzerinden skor gösterimi
-    const skor = Math.min(item.riskPuani, 10); 
+    if (filtrelenmis.length === 0) {
+      list.innerHTML = "<p>Bu kritere uygun geçmiş kaydı bulunmuyor.</p>";
+      return;
+    }
 
-    li.innerHTML = `
-      <div class="history-item-header">
-        <div class="header-left">
-          <span class="result-badge risk-${item.seviye.toLowerCase()}">${item.seviye} Risk (${skor}/10)</span>
-          <span class="result-score" style="margin-left: 10px;">${item.tarih}</span>
+    filtrelenmis.forEach((item) => {
+      const bulunanRisklerDizi = item.bulunanRiskler.split(", ");
+      const tarihMetni = new Date(item.tarih).toLocaleString("tr-TR");
+      const skor = Math.min(item.riskPuani, 10);
+
+      const li = document.createElement("li");
+      li.className = "history-item accordion-item";
+
+      const kisaIcerik = item.icerik.length > 80
+        ? item.icerik.substring(0, 80) + "..."
+        : item.icerik;
+
+      li.innerHTML = `
+        <div class="history-item-header">
+          <div class="header-left">
+            <span class="result-badge risk-${item.seviye.toLowerCase()}">${item.seviye} Risk (${skor}/10)</span>
+            <span class="result-score" style="margin-left: 10px;">${tarihMetni}</span>
+          </div>
+          <button class="delete-history-btn" title="Bu kaydı sil">✕</button>
         </div>
-        <button class="delete-history-btn" title="Bu kaydı sil">✕</button>
-      </div>
-      <div class="history-summary">
-        <p><strong>İncelenen:</strong> ${item.icerik.length > 80 ? item.icerik.substring(0, 80) + "..." : item.icerik}</p>
-        <span class="expand-hint">Detayları görmek için tıklayın ▼</span>
-      </div>
-      <div class="history-details" style="display: none;">
-        <p><strong>Tam İçerik:</strong><br>${item.icerik}</p>
-        <p style="margin-top: 10px;"><strong>Tespit Edilen Riskler:</strong></p>
-        <ul style="margin-top: 5px; padding-left: 20px;">
-          ${item.bulunanRiskler.map(r => `<li>${r}</li>`).join('')}
-        </ul>
-      </div>
-    `;
+        <div class="history-summary">
+          <p><strong>İncelenen:</strong> ${kisaIcerik}</p>
+          <span class="expand-hint">Detayları görmek için tıklayın ▼</span>
+        </div>
+        <div class="history-details" style="display: none;">
+          <p><strong>Tam İçerik:</strong><br>${item.icerik}</p>
+          <p style="margin-top: 10px;"><strong>Tespit Edilen Riskler:</strong></p>
+          <ul style="margin-top: 5px; padding-left: 20px;">
+            ${bulunanRisklerDizi.map((r) => `<li>${r}</li>`).join('')}
+          </ul>
+        </div>
+      `;
 
-    // Genişletme/Daraltma Olayı
-    li.addEventListener("click", function(e) {
-      if (e.target.classList.contains("delete-history-btn")) return;
-      
-      if (e.target.closest(".history-details")) return;
-      
-      if (window.getSelection().toString() !== "") return;
-      
-      const details = this.querySelector(".history-details");
-      const hint = this.querySelector(".expand-hint");
-      if (details.style.display === "none") {
-        details.style.display = "block";
-        hint.textContent = "Detayları gizle ▲";
-        this.style.borderColor = "#a0aec0";
-      } else {
-        details.style.display = "none";
-        hint.textContent = "Detayları görmek için tıklayın ▼";
-        this.style.borderColor = "#e4eaf2";
-      }
+      // Genişletme/daraltma: kutuya tıklanınca detaylar açılır/kapanır
+      li.addEventListener("click", function (e) {
+        if (e.target.classList.contains("delete-history-btn")) return;
+        if (e.target.closest(".history-details")) return;
+        if (window.getSelection().toString() !== "") return;
+
+        const details = this.querySelector(".history-details");
+        const hint = this.querySelector(".expand-hint");
+        const acikMi = details.style.display !== "none";
+
+        details.style.display = acikMi ? "none" : "block";
+        hint.textContent = acikMi ? "Detayları görmek için tıklayın ▼" : "Detayları gizle ▲";
+      });
+
+      // Sil butonu
+      const deleteBtn = li.querySelector(".delete-history-btn");
+      deleteBtn.addEventListener("click", async function (e) {
+        e.stopPropagation();
+
+        if (!confirm("Bu analizi geçmişten silmek istediğinize emin misiniz?")) return;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/${item.id}`, { method: "DELETE" });
+
+          if (!response.ok) throw new Error("Silme başarısız: " + response.status);
+
+          // Listeyi yenile
+          const aktifFiltre = document.getElementById("historyFilter").value || "All";
+          gecmisiListele(aktifFiltre);
+          profilIstatistikGuncelle();
+        } catch (hata) {
+          console.error("Silme sırasında hata:", hata);
+          alert("Kayıt silinirken bir hata oluştu.");
+        }
+      });
+
+      list.appendChild(li);
     });
-
-    // Tekil Silme Olayı
-    const deleteBtn = li.querySelector(".delete-history-btn");
-    deleteBtn.addEventListener("click", function(e) {
-      e.stopPropagation(); // Tıklamanın akordeonu açmasını engelle
-      if (confirm("Bu analizi geçmişten silmek istediğinize emin misiniz?")) {
-        const guncelGecmis = gecmisiGetir();
-        guncelGecmis.splice(item.originalIndex, 1);
-        localStorage.setItem("analizGecmisi", JSON.stringify(guncelGecmis));
-        
-        const guncelFiltre = document.getElementById("historyFilter").value;
-        gecmisiListele(guncelFiltre); // Listeyi yenile
-        profilIstatistikGuncelle();
-      }
-    });
-
-    list.appendChild(li);
-  });
+  } catch (hata) {
+    console.error("Geçmiş yüklenirken hata:", hata);
+    list.innerHTML = "<p>Geçmiş yüklenirken hata oluştu. Backend çalışıyor mu?</p>";
+  }
 }
 
 
 
 
 
-function profilIstatistikGuncelle() {
-  const gecmis = gecmisiGetir();
+
+async function profilIstatistikGuncelle() {
   const toplamEl = document.getElementById("toplamAnalizSayisi");
   const yuksekEl = document.getElementById("yuksekRiskSayisi");
 
-  toplamEl.textContent = gecmis.length;
-  yuksekEl.textContent = gecmis.filter((item) => item.seviye === "Yüksek").length;
+  try {
+    const response = await fetch(API_BASE_URL);
+    const gecmis = await response.json();
+
+    toplamEl.textContent = gecmis.length;
+    yuksekEl.textContent = gecmis.filter((item) => item.seviye === "Yüksek").length;
+  } catch (hata) {
+    console.error("İstatistikler yüklenirken hata:", hata);
+    toplamEl.textContent = "-";
+    yuksekEl.textContent = "-";
+  }
 }
 
 
 /* ============================================================
-   4. EVENT BAĞLAMA (uygulama başladığında bir kez çalışır)
+   3. EVENT BAĞLAMA (uygulama başladığında bir kez çalışır)
    ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -276,32 +208,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  analizBtn.addEventListener("click", () => {
-    const icerik = input.value.trim();
 
-    if (!icerik) {
-      alert("Lütfen analiz edilecek bir mail içeriği veya link girin.");
-      return;
-    }
+  /* Analiz button */
+  analizBtn.addEventListener("click", async () => {
+  const icerik = input.value.trim();
 
-    analizBtn.disabled = true;
-    analizBtn.textContent = "Analiz ediliyor...";
-    document.getElementById("resultCard").style.display = "none";
-    temizleBtn.style.display = "none";
+  if (!icerik) {
+    alert("Lütfen analiz edilecek bir mail içeriği veya link girin.");
+    return;
+  }
 
-    // Not: Gerçek analiz anlık; bu gecikme kullanıcıya "sistem gerçekten
-    // inceliyor" hissi vermek için eklendi. İleride API/LLM çağrısının
-    // gerçek bekleme süresiyle değişecek.
-    setTimeout(() => {
-      const sonuc = analizEt(icerik);
-      sonucuGoster(sonuc);
-      gecmiseKaydet(icerik, sonuc);
+  analizBtn.disabled = true;
+  analizBtn.textContent = "Analiz ediliyor...";
+  document.getElementById("resultCard").style.display = "none";
+  temizleBtn.style.display = "none";
 
-      analizBtn.disabled = false;
-      analizBtn.textContent = btnOrijinalMetin;
-      temizleBtn.style.display = "flex";
-    }, 1200);
-  });
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ icerik }),
+    });
+
+    if (!response.ok) throw new Error("Sunucu hatası: " + response.status);
+
+    const veri = await response.json();
+
+    // Backend'den gelen bulunanRiskler bir metin, diziye çeviriyoruz
+    const sonuc = {
+      ...veri,
+      bulunanRiskler: veri.bulunanRiskler.split(", "),
+    };
+
+    sonucuGoster(sonuc);
+  } catch (hata) {
+    console.error("Analiz sırasında hata:", hata);
+    alert("Sunucuya bağlanılamadı. Backend'in çalıştığından emin olun (dotnet run).");
+  } finally {
+    analizBtn.disabled = false;
+    analizBtn.textContent = btnOrijinalMetin;
+    temizleBtn.style.display = "flex";
+  }
+});
+
+
+
+
 
   temizleBtn.addEventListener("click", () => {
     input.value = "";
@@ -368,14 +320,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const clearHistoryBtn = document.getElementById("clearHistoryBtn");
   if (clearHistoryBtn) {
-    clearHistoryBtn.addEventListener("click", () => {
-      const gecmis = gecmisiGetir();
-      if (gecmis.length === 0) return alert("Silinecek geçmiş bulunmuyor.");
-      
-      if (confirm("Tüm analiz geçmişini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) {
-        localStorage.removeItem("analizGecmisi");
+    clearHistoryBtn.addEventListener("click", async () => {
+      if (!confirm("Tüm analiz geçmişini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/tumunu-sil`, { method: "DELETE" });
+
+        if (!response.ok) throw new Error("Toplu silme başarısız: " + response.status);
+
         gecmisiListele("All");
         profilIstatistikGuncelle();
+      } catch (hata) {
+        console.error("Toplu silme sırasında hata:", hata);
+        alert("Geçmiş silinirken bir hata oluştu.");
       }
     });
   }
