@@ -59,6 +59,34 @@ public class AnalizServisi
             }
         }
 
+
+        // Ek dosya uyarısı
+        var ekDosyaKelimeleri = new[] { "ekli dosya", "eki inceleyin", ".exe", ".zip", ".scr", "makro" };
+        if (ekDosyaKelimeleri.Any(k => metin.Contains(k)))
+        {
+            riskPuani += 2;
+            bulunanRiskler.Add("Şüpheli ek dosya ifadesi tespit edildi");
+        }
+
+        // IP adresi şeklinde link (domain yerine doğrudan IP)
+        var ipLinkMatch = System.Text.RegularExpressions.Regex.Match(
+            icerik, @"https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
+        if (ipLinkMatch.Success)
+        {
+            riskPuani += 3;
+            bulunanRiskler.Add("Bağlantı bir domain yerine doğrudan IP adresine yönlendiriyor");
+        }
+
+        // Kişiselleştirme eksikliği (genel hitap)
+        var genelHitaplar = new[] { "değerli müşterimiz", "sayın kullanıcı", "değerli üyemiz", "dear customer" };
+        if (genelHitaplar.Any(h => metin.Contains(h)))
+        {
+            riskPuani += 1;
+            bulunanRiskler.Add("Kişiselleştirilmemiş, genel bir hitap kullanılmış");
+        }
+
+
+
         // Bilinen marka taklidi
         var markalar = new[] { "paypal", "garanti", "ziraat", "apple", "microsoft", "trendyol" };
         var gecenMarka = markalar.FirstOrDefault(m => metin.Contains(m));
@@ -81,7 +109,7 @@ public class AnalizServisi
             Icerik = icerik,
             Seviye = seviye,
             RiskPuani = riskPuani,
-            BulunanRiskler = string.Join(", ", bulunanRiskler),
+            BulunanRiskler = string.Join(" | ", bulunanRiskler),
             Tarih = DateTime.UtcNow
         };
     }

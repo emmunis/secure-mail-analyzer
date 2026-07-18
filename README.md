@@ -6,7 +6,7 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 
 ## Durum
 
-Frontend prototipi tamamlanmış, **backend ve veritabanı entegrasyonu aktif olarak çalışmaktadır**. Analiz işlemleri artık .NET Web API üzerinden gerçekleştirilmekte, sonuçlar Supabase (PostgreSQL) veritabanında kalıcı olarak saklanmaktadır.
+Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalışan bir sistemle tam entegre çalışmaktadır. Analiz işlemleri backend'de gerçekleştirilmekte, sonuçlar Supabase (PostgreSQL) veritabanında kalıcı olarak saklanmaktadır.
 
 ## Tamamlanan Özellikler
 
@@ -15,7 +15,9 @@ Frontend prototipi tamamlanmış, **backend ve veritabanı entegrasyonu aktif ol
 
 - Aciliyet/baskı dili tespiti (örn. "hemen", "24 saat içinde", "hesabınız kapatılacak")
 - Kişisel veri veya ödeme bilgisi talebi tespiti (şifre, kart numarası, TC kimlik vb.)
-- Link kontrolleri: HTTPS eksikliği, aşırı uzun bağlantılar, link kısaltıcı kullanımı, domain içinde fazla sayıda tire/rakam
+- Link kontrolleri: HTTPS eksikliği, aşırı uzun bağlantılar, link kısaltıcı kullanımı, domain içinde fazla sayıda tire/rakam, IP adresine doğrudan yönlendirme
+- Şüpheli ek dosya ifadelerinin tespiti (.exe, .zip, "eki inceleyin" vb.)
+- Kişiselleştirilmemiş, genel hitap tespiti (örn. "Sayın kullanıcı")
 - Bilinen marka taklidi tespiti (örn. marka adı geçip resmi domain ile eşleşmiyorsa)
 - Toplanan puana göre düşük / orta / yüksek risk seviyesi belirleme
 </details>
@@ -43,6 +45,7 @@ Frontend prototipi tamamlanmış, **backend ve veritabanı entegrasyonu aktif ol
 <summary><strong>Profil sekmesi</strong></summary>
 
 - Toplam analiz sayısı ve yüksek risk sayısını gösteren istatistik kartı (Supabase'ten canlı veriyle hesaplanıyor)
+- En sık görülen risk tiplerinin listelendiği bölüm
 - Kullanıcı hesabı/giriş sistemi henüz yok, kullanıcı bilgileri örnek veridir
 </details>
 
@@ -63,12 +66,21 @@ Frontend prototipi tamamlanmış, **backend ve veritabanı entegrasyonu aktif ol
 </details>
 
 <details>
+<summary><strong>React Bileşen Yapısı</strong></summary>
+
+- Arayüz, Header, Hero, AnalizFormu, Slider, BlogBolumu, Gecmis, Profil, Faq ve Footer olmak üzere bağımsız React bileşenlerine ayrıldı
+- Sekme yönlendirmesi, önceki doğrudan DOM manipülasyonu yerine React'in durum yönetimi (`useState`) ile yeniden kurgulandı
+- Sayfa başlığı ve favicon yapılandırması güncellendi, sekmeler arası geçiş animasyonu React bileşen yaşam döngüsüne uygun şekilde sağlandı
+</details>
+
+<details>
 <summary><strong>Backend ve Veritabanı</strong></summary>
 
 - .NET Web API projesi (`RubyApi`) oluşturuldu ve Supabase (PostgreSQL) veritabanına Entity Framework Core ile bağlandı
 - Analiz mantığı JavaScript'ten C#'a taşındı (`AnalizServisi`)
 - `POST /api/analiz` — içerik gönderip analiz sonucu alma ve veritabanına kaydetme
 - `GET /api/analiz` — geçmiş analizleri listeleme
+- `GET /api/analiz/istatistik` — toplam analiz sayısı, risk dağılımı ve en sık görülen risk tiplerini döndürme
 - `DELETE /api/analiz/{id}` — tekil kayıt silme
 - `DELETE /api/analiz/tumunu-sil` — tüm geçmişi toplu silme
 - CORS yapılandırması ile frontend'in API'ye tarayıcı üzerinden erişimi sağlandı
@@ -77,14 +89,13 @@ Frontend prototipi tamamlanmış, **backend ve veritabanı entegrasyonu aktif ol
 
 ## Kullanılan Teknolojiler (Mevcut)
 
-- HTML5, CSS3, JavaScript (frontend)
-- .NET Web API (backend)
-- Entity Framework Core + Npgsql (veritabanı erişimi)
-- PostgreSQL (Supabase üzerinden)
+- **Frontend:** React, Vite, CSS3
+- **Backend:** .NET Web API
+- **Veri Erişim:** Entity Framework Core + Npgsql (veritabanı erişimi)
+- **Veritabanı:** PostgreSQL (Supabase üzerinden)
 
 ## Planlanan Teknolojiler
 
-- **Frontend:** React'e geçiş
 - **Container:** Docker, Docker Compose
 - **Orkestrasyon:** Kubernetes (Minikube / Docker Desktop)
 - **Opsiyonel:** LLM entegrasyonu (analiz kalitesini artırmak için)
@@ -93,7 +104,7 @@ Frontend prototipi tamamlanmış, **backend ve veritabanı entegrasyonu aktif ol
 
 ```
 secure-mail-analyzer/
-├── frontend/          # Statik prototip (HTML/CSS/JS)
+├── frontend/    # React (Vite) frontend projesi
 ├── backend/
 │   └── RubyApi/       # .NET Web API projesi
 ├── database/          # Veritabanı yapılandırması (Supabase üzerinden yönetiliyor)
@@ -107,8 +118,10 @@ secure-mail-analyzer/
 
 ### Frontend
 
-1. Repoyu klonlayın: `git clone <repo-linki>`
-2. `frontend/index.html` dosyasını bir tarayıcıda açın.
+1. `Node.js` (LTS sürüm) kurulu olmalıdır.
+2. `frontend` klasörüne girin.
+3. Bağımlılıkları kurun: `npm install`
+4. Geliştirme sunucusunu başlatın: `npm run dev` (varsayılan olarak `http://localhost:5173` üzerinden yayınlanır)
 
 ### Backend
 
@@ -125,8 +138,6 @@ secure-mail-analyzer/
 
 ## Geliştirme Geçmişi (Fazlar)
 
-Her faz tamamlandığında ilgili Git etiketiyle (tag) o anki koda kolayca dönülebilir.
-
 <details>
 <summary><strong>Faz 1 — Statik Prototip</strong> <code>v0.1-prototip</code></summary>
 
@@ -140,9 +151,9 @@ HTML, CSS ve vanilla JavaScript ile geliştirilen ilk prototip. Analiz formu, ku
 </details>
 
 <details>
-<summary><strong>Faz 3 — React'e Geçiş</strong> <em>(planlanıyor)</em></summary>
+<summary><strong>Faz 3 — React'e Geçiş ve Analiz Motoru Geliştirmeleri</strong> <code>v0.3-react</code></summary>
 
-Mevcut arayüz, backend API'sini tüketen bir React uygulamasına dönüştürülecektir.
+Statik HTML/CSS/JavaScript yapısı, işlevsel bölümlere karşılık gelen bağımsız React bileşenlerine ayrıldı; sekme yönetimi React'in durum yönetimiyle yeniden kuruldu. Eski statik dosyalar temizlendi. Ardından backend'deki analiz motoruna yeni kontroller (ek dosya uyarısı, IP adresi şeklinde link, kişiselleştirme eksikliği) eklendi ve daha önce hazırlanan istatistik uç noktası, Profil sayfasındaki "En Sık Görülen Risk Tipleri" bölümüyle işlevsel hale getirildi. Süreçte tespit edilen bir veri formatı hatası (risk açıklamalarının ayraç karakteriyle yanlış bölünmesi) giderildi.
 </details>
 
 
@@ -153,8 +164,9 @@ Mevcut arayüz, backend API'sini tüketen bir React uygulamasına dönüştürü
 - [x] .NET Web API kurulumu ve Supabase (PostgreSQL) bağlantısı
 - [x] Analiz mantığının backend'e taşınması
 - [x] Geçmiş kayıtları silme (tekil ve toplu) endpoint'leri
-- [ ] React'e geçiş
+- [x] React'e geçiş
+- [x] Analiz motorunda ek kontroller (ek dosya, IP linki, kişiselleştirme eksikliği)
 - [ ] Docker ve docker-compose yapılandırması
 - [ ] Kubernetes deployment dosyaları
-- [ ] Admin paneli (toplam analiz sayısı, risk dağılımı, en sık görülen risk tipleri)
+- [ ] Admin paneli (toplam analiz sayısı, risk dağılımı, en sık görülen risk tipleri — Profil sayfasında kısmen mevcut)
 - [ ] LLM entegrasyonu (opsiyonel)

@@ -45,6 +45,34 @@ public class AnalizController : ControllerBase
         return Ok(gecmis);
     }
 
+
+
+    // GET /api/analiz/istatistik
+    [HttpGet("istatistik")]
+    public async Task<ActionResult> Istatistik()
+    {
+        var tumKayitlar = await _context.AnalizKayitlari.ToListAsync();
+
+        var riskDagilimi = tumKayitlar
+            .GroupBy(k => k.Seviye)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var enSikRiskTipleri = tumKayitlar
+            .SelectMany(k => k.BulunanRiskler.Split(" | "))
+            .GroupBy(r => r)
+            .OrderByDescending(g => g.Count())
+            .Take(5)
+            .Select(g => new { risk = g.Key, sayi = g.Count() });
+
+        return Ok(new
+        {
+            toplamAnalizSayisi = tumKayitlar.Count,
+            riskDagilimi,
+            enSikRiskTipleri
+        });
+    }
+
+
     // DELETE /api/analiz/tumunu-sil
     [HttpDelete("tumunu-sil")]
     public async Task<IActionResult> TumunuSil()
@@ -70,6 +98,8 @@ public class AnalizController : ControllerBase
 
         return NoContent(); // 204 - başarılı, dönecek içerik yok
     }
+
+
 
 
 }
