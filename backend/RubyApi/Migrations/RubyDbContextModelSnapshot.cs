@@ -48,6 +48,9 @@ namespace RubyApi.Migrations
                     b.Property<DateTime>("Tarih")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("ZiyaretciId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.ToTable("AnalizKayitlari");

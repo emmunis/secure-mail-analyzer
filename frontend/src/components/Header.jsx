@@ -34,7 +34,19 @@ function Header({ aktifSekme, setAktifSekme }) {
                 setAktifSekme("profil");
               }}
             >
-              Profil
+              İstatistiklerim
+            </a>
+          </li>
+          <li className="main-nav_li">
+            <a
+              href="#"
+              className={aktifSekme === "admin" ? "active" : ""}
+              onClick={(e) => {
+                e.preventDefault();
+                setAktifSekme("admin");
+              }}
+            >
+              Admin
             </a>
           </li>
         </ul>

@@ -6,7 +6,11 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 
 ## Durum
 
-Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalışan bir sistemle tam entegre çalışmaktadır. Analiz işlemleri backend'de gerçekleştirilmekte, sonuçlar Supabase (PostgreSQL) veritabanında kalıcı olarak saklanmaktadır.
+Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalışan
+bir sistemle tam entegre çalışmaktadır. Analiz işlemleri backend'de
+gerçekleştirilmekte, sonuçlar Supabase (PostgreSQL) veritabanında kalıcı olarak
+saklanmaktadır. Son kullanıcı hesabı gerektirmeyen anonim geçmiş, JWT ile
+korunan admin paneli ve otomatik analiz testleri çalışır durumdadır.
 
 ## Tamamlanan Özellikler
 
@@ -16,6 +20,9 @@ Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalı
 - Aciliyet/baskı dili tespiti (örn. "hemen", "24 saat içinde", "hesabınız kapatılacak")
 - Kişisel veri veya ödeme bilgisi talebi tespiti (şifre, kart numarası, TC kimlik vb.)
 - Link kontrolleri: HTTPS eksikliği, aşırı uzun bağlantılar, link kısaltıcı kullanımı, domain içinde fazla sayıda tire/rakam, IP adresine doğrudan yönlendirme
+- İçerikteki tüm bağlantıların ayrı ayrı incelenmesi
+- HTML ve Markdown bağlantılarında görünen adres ile gerçek hedefin karşılaştırılması
+- Punycode/benzer karakter içerebilen ve olağandışı karmaşık domain uyarıları
 - Şüpheli ek dosya ifadelerinin tespiti (.exe, .zip, "eki inceleyin" vb.)
 - Kişiselleştirilmemiş, genel hitap tespiti (örn. "Sayın kullanıcı")
 - Bilinen marka taklidi tespiti (örn. marka adı geçip resmi domain ile eşleşmiyorsa)
@@ -42,11 +49,21 @@ Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalı
 </details>
 
 <details>
-<summary><strong>Profil sekmesi</strong></summary>
+<summary><strong>İstatistiklerim sekmesi</strong></summary>
 
-- Toplam analiz sayısı ve yüksek risk sayısını gösteren istatistik kartı (Supabase'ten canlı veriyle hesaplanıyor)
+- Kullanıcı hesabı gerektirmeden, tarayıcıya özel anonim geçmiş
+- Toplam analiz sayısı ve yüksek risk sayısını gösteren “İstatistiklerim” kartı
 - En sık görülen risk tiplerinin listelendiği bölüm
-- Kullanıcı hesabı/giriş sistemi henüz yok, kullanıcı bilgileri örnek veridir
+</details>
+
+<details>
+<summary><strong>Admin paneli</strong></summary>
+
+- Son kullanıcı kayıt/giriş sistemi olmadan ayrı yönetici girişi
+- İki saat geçerli, rol tabanlı JWT ile korunan admin istatistik endpoint'i
+- Toplam analiz ve anonim ziyaretçi sayısı
+- Risk seviyelerine göre dağılım ve en sık görülen risk tipleri
+- Yönetici parolası ve JWT anahtarı yalnızca user-secrets/ortam değişkenlerinde tutulur
 </details>
 
 <details>
@@ -68,7 +85,8 @@ Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalı
 <details>
 <summary><strong>React Bileşen Yapısı</strong></summary>
 
-- Arayüz, Header, Hero, AnalizFormu, Slider, BlogBolumu, Gecmis, Profil, Faq ve Footer olmak üzere bağımsız React bileşenlerine ayrıldı
+- Arayüz; Header, Hero, AnalizFormu, Slider, BlogBolumu, Gecmis, Profil,
+  AdminPanel, Faq ve Footer olmak üzere bağımsız React bileşenlerine ayrıldı
 - Sekme yönlendirmesi, önceki doğrudan DOM manipülasyonu yerine React'in durum yönetimi (`useState`) ile yeniden kurgulandı
 - Sayfa başlığı ve favicon yapılandırması güncellendi, sekmeler arası geçiş animasyonu React bileşen yaşam döngüsüne uygun şekilde sağlandı
 </details>
@@ -83,7 +101,12 @@ Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalı
 - `GET /api/analiz/istatistik` — toplam analiz sayısı, risk dağılımı ve en sık görülen risk tiplerini döndürme
 - `DELETE /api/analiz/{id}` — tekil kayıt silme
 - `DELETE /api/analiz/tumunu-sil` — tüm geçmişi toplu silme
+- `POST /api/admin/giris` — yönetici parolası karşılığında kısa süreli JWT üretme
+- `GET /api/admin/istatistik` — yalnızca admin rolüne açık toplu istatistikler
+- `GET /health` — uygulama sağlık kontrolü
 - CORS yapılandırması ile frontend'in API'ye tarayıcı üzerinden erişimi sağlandı
+- Analiz endpoint'i için istek sınırlandırması ve `/health` sağlık kontrolü
+- Boş ve 20.000 karakteri aşan analiz istekleri için API doğrulaması
 - Bağlantı bilgileri `user-secrets` ile güvenli şekilde saklanıyor (koda veya Git'e yazılmıyor)
 </details>
 
@@ -106,7 +129,8 @@ Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalı
 secure-mail-analyzer/
 ├── frontend/    # React (Vite) frontend projesi
 ├── backend/
-│   └── RubyApi/       # .NET Web API projesi
+│   ├── RubyApi/       # .NET Web API projesi
+│   └── RubyApi.Tests/ # Analiz motoru ve istek doğrulama testleri
 ├── database/          # Veritabanı yapılandırması (Supabase üzerinden yönetiliyor)
 ├── k8s/               # Kubernetes YAML dosyaları (henüz başlanmadı)
 ├── docs/              # Ekran görüntüleri ve dokümantasyon
@@ -131,10 +155,43 @@ secure-mail-analyzer/
    ```
    dotnet user-secrets set "ConnectionStrings:RubyDb" "Host=...;Port=5432;Database=postgres;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true"
    ```
-4. Veritabanı migration'larını uygulayın: `dotnet ef database update`
-5. API'yi çalıştırın: `dotnet run` (varsayılan olarak `http://localhost:5108` üzerinden yayınlanır)
+4. Admin erişim bilgilerini tanımlayın:
+   ```
+   dotnet user-secrets set "Admin:Password" "guclu-bir-yonetici-parolasi"
+   dotnet user-secrets set "Jwt:Issuer" "RubyApi"
+   dotnet user-secrets set "Jwt:Key" "en-az-32-karakterlik-rastgele-bir-gizli-anahtar"
+   ```
+5. Veritabanı migration'larını uygulayın:
+   ```
+   dotnet ef database update
+   ```
+   Bu komut `backend/RubyApi/Migrations/` klasöründeki migration'ları sırasıyla
+   uygular ve gerekli tablo/sütunları otomatik oluşturur veya günceller.
+6. API'yi çalıştırın: `dotnet run` (varsayılan olarak `http://localhost:5108` üzerinden yayınlanır)
 
 > Not: Bağlantı bilgileri hiçbir zaman koda veya Git'e yazılmaz, yalnızca yerel `user-secrets` deposunda tutulur.
+
+### Backend testleri
+
+Analiz motoru ve istek doğrulamalarını kontrol etmek için:
+
+```powershell
+cd backend
+dotnet run --project RubyApi.Tests/RubyApi.Tests.csproj
+```
+
+Test çalıştırıcısı dış test paketi gerektirmez ve herhangi bir test başarısız
+olduğunda sıfırdan farklı çıkış kodu döndürür.
+
+### Migration dosyaları hakkında
+
+- `backend/RubyApi/Migrations/` altındaki `.cs` ve `.Designer.cs` dosyaları ile
+  `RubyDbContextModelSnapshot.cs` Entity Framework migration geçmişinin
+  parçalarıdır. Veritabanının sıfırdan doğru kurulabilmesi için repoda
+  bulunmaları gerekir; silinmemelidir.
+- Projede tek bir temiz `Baslangic` migration'ı bulunur. Yeni bir veritabanında
+  `dotnet ef database update` komutunu çalıştırmak yeterlidir; ayrıca SQL
+  dosyası çalıştırılması gerekmez.
 
 ## Geliştirme Geçmişi (Fazlar)
 
@@ -156,6 +213,21 @@ HTML, CSS ve vanilla JavaScript ile geliştirilen ilk prototip. Analiz formu, ku
 Statik HTML/CSS/JavaScript yapısı, işlevsel bölümlere karşılık gelen bağımsız React bileşenlerine ayrıldı; sekme yönetimi React'in durum yönetimiyle yeniden kuruldu. Eski statik dosyalar temizlendi. Ardından backend'deki analiz motoruna yeni kontroller (ek dosya uyarısı, IP adresi şeklinde link, kişiselleştirme eksikliği) eklendi ve daha önce hazırlanan istatistik uç noktası, Profil sayfasındaki "En Sık Görülen Risk Tipleri" bölümüyle işlevsel hale getirildi. Süreçte tespit edilen bir veri formatı hatası (risk açıklamalarının ayraç karakteriyle yanlış bölünmesi) giderildi.
 </details>
 
+<details>
+<summary><strong>Faz 4 — Anonim Geçmiş, Admin ve Güvenlik İyileştirmeleri</strong> <code>v0.4-new-features</code></summary>
+
+Son kullanıcı kayıt/giriş zorunluluğu kaldırılarak tarayıcıya özel anonim geçmiş
+sistemi geliştirildi. Kullanıcılar yalnızca kendi analizlerini görebilir ve
+silebilir hâle getirildi. Ayrı yönetici girişi, rol tabanlı JWT ve tüm
+ziyaretçilerin anonim toplu istatistiklerini gösteren admin paneli eklendi.
+
+Veritabanı migration geçmişi tek ve temiz bir `Baslangic` migration'ında
+birleştirildi. Analiz motoru; çoklu bağlantı inceleme, görünen adres ile gerçek
+hedef uyuşmazlığı, IP/kısaltılmış bağlantı, Punycode ve karmaşık domain
+kontrolleriyle geliştirildi. API istek doğrulamaları, analiz rate limit'i ve
+sağlık kontrolü eklendi. Analiz motoru ile istek modellerini kapsayan 16
+otomatik test hazırlandı.
+</details>
 
 
 ## Yol Haritası
@@ -166,7 +238,10 @@ Statik HTML/CSS/JavaScript yapısı, işlevsel bölümlere karşılık gelen ba�
 - [x] Geçmiş kayıtları silme (tekil ve toplu) endpoint'leri
 - [x] React'e geçiş
 - [x] Analiz motorunda ek kontroller (ek dosya, IP linki, kişiselleştirme eksikliği)
+- [x] Çoklu link, hedef uyuşmazlığı ve karmaşık domain kontrolleri
+- [x] Analiz motoru ve istek doğrulama testleri
 - [ ] Docker ve docker-compose yapılandırması
 - [ ] Kubernetes deployment dosyaları
-- [ ] Admin paneli (toplam analiz sayısı, risk dağılımı, en sık görülen risk tipleri — Profil sayfasında kısmen mevcut)
+- [x] Anonim, tarayıcıya özel analiz geçmişi
+- [x] Admin paneli (toplam analiz sayısı, risk dağılımı ve en sık görülen risk tipleri)
 - [ ] LLM entegrasyonu (opsiyonel)

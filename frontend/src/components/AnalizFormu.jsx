@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const API_BASE_URL = "http://localhost:5108/api/analiz";
+import { apiFetch } from '../api';
 
 function AnalizFormu() {
   const [icerik, setIcerik] = useState("");
@@ -19,13 +18,23 @@ function AnalizFormu() {
     setSonuc(null);
 
     try {
-      const response = await fetch(API_BASE_URL, {
+      const response = await apiFetch("/analiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ icerik: temizIcerik }),
       });
 
-      if (!response.ok) throw new Error("Sunucu hatası: " + response.status);
+      if (!response.ok) {
+        if (response.status === 429)
+          throw new Error("Çok fazla analiz isteği gönderdiniz. Lütfen bir dakika bekleyin.");
+
+        const hataGovdesi = await response.json().catch(() => null);
+        const dogrulamaMesaji = hataGovdesi?.errors
+          ? Object.values(hataGovdesi.errors).flat()[0]
+          : null;
+
+        throw new Error(dogrulamaMesaji || hataGovdesi?.detail || `Sunucu hatası: ${response.status}`);
+      }
 
       const veri = await response.json();
 
@@ -35,7 +44,7 @@ function AnalizFormu() {
       });
     } catch (hata) {
       console.error("Analiz sırasında hata:", hata);
-      alert("Sunucuya bağlanılamadı. Backend'in çalıştığından emin olun (dotnet run).");
+      alert(hata.message || "Sunucuya bağlanılamadı. Backend'in çalıştığından emin olun.");
     } finally {
       setYukleniyor(false);
     }
@@ -64,6 +73,7 @@ function AnalizFormu() {
               id="linkoremail"
               rows="5"
               placeholder="Lütfen analiz edilecek bağlantıyı veya e-posta içeriğini buraya yapıştırın..."
+              maxLength={20000}
               value={icerik}
               onChange={(e) => setIcerik(e.target.value)}
             />
@@ -80,6 +90,7 @@ function AnalizFormu() {
         </div>
 
         <div className="content-footer">
+          <span className="character-counter">{icerik.length}/20.000</span>
           <button className="btn" disabled={yukleniyor} onClick={analizEt}>
             {yukleniyor ? "Analiz ediliyor..." : "Analiz Et"}
           </button>
