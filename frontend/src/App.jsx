@@ -6,6 +6,7 @@ import Slider from './components/Slider';
 import BlogBolumu from './components/BlogBolumu';
 import Gecmis from './components/Gecmis';
 import Profil from './components/Profil';
+import AdminPanel from './components/AdminPanel';
 import Faq from './components/Faq';
 import Footer from './components/Footer';
 import './style.css';
@@ -33,6 +34,11 @@ function App() {
         {aktifSekme === "profil" && (
           <div className="sekme-icerik">
             <Profil />
+          </div>
+        )}
+        {aktifSekme === "admin" && (
+          <div className="sekme-icerik">
+            <AdminPanel />
           </div>
         )}
       </main>

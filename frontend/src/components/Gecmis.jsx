@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const API_BASE_URL = "http://localhost:5108/api/analiz";
+import { apiFetch } from '../api';
 
 function Gecmis() {
   const [kayitlar, setKayitlar] = useState([]);
@@ -8,21 +7,21 @@ function Gecmis() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [acikId, setAcikId] = useState(null); // hangi kayıt genişletilmiş
 
-  async function kayitlariGetir() {
-    setYukleniyor(true);
-    try {
-      const response = await fetch(API_BASE_URL);
-      const veriler = await response.json();
-      setKayitlar(veriler);
-    } catch (hata) {
-      console.error("Geçmiş yüklenirken hata:", hata);
-    } finally {
-      setYukleniyor(false);
-    }
-  }
-
   // Component ekrana ilk geldiğinde geçmişi çek
   useEffect(() => {
+    async function kayitlariGetir() {
+      try {
+        const response = await apiFetch("/analiz");
+        if (!response.ok) throw new Error("Geçmiş alınamadı: " + response.status);
+        const veriler = await response.json();
+        setKayitlar(veriler);
+      } catch (hata) {
+        console.error("Geçmiş yüklenirken hata:", hata);
+      } finally {
+        setYukleniyor(false);
+      }
+    }
+
     kayitlariGetir();
   }, []);
 
@@ -30,7 +29,7 @@ function Gecmis() {
     if (!confirm("Bu analizi geçmişten silmek istediğinize emin misiniz?")) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, { method: "DELETE" });
+      const response = await apiFetch(`/analiz/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Silme başarısız: " + response.status);
 
       // Silinen kaydı ekrandan da kaldır (backend'e tekrar sormaya gerek yok)
@@ -46,7 +45,7 @@ function Gecmis() {
     if (!confirm("Tüm analiz geçmişini kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/tumunu-sil`, { method: "DELETE" });
+      const response = await apiFetch("/analiz/tumunu-sil", { method: "DELETE" });
       if (!response.ok) throw new Error("Toplu silme başarısız: " + response.status);
 
       setKayitlar([]);

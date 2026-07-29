@@ -12,8 +12,8 @@ using RubyApi.Data;
 namespace RubyApi.Migrations
 {
     [DbContext(typeof(RubyDbContext))]
-    [Migration("20260715193406_IlkMigration")]
-    partial class IlkMigration
+    [Migration("20260729145605_Baslangic")]
+    partial class Baslangic
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,9 @@ namespace RubyApi.Migrations
 
                     b.Property<DateTime>("Tarih")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ZiyaretciId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 

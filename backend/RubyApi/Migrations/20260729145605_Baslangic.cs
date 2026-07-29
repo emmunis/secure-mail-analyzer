@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace RubyApi.Migrations
 {
     /// <inheritdoc />
-    public partial class IlkMigration : Migration
+    public partial class Baslangic : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,7 +22,8 @@ namespace RubyApi.Migrations
                     Seviye = table.Column<string>(type: "text", nullable: false),
                     RiskPuani = table.Column<int>(type: "integer", nullable: false),
                     BulunanRiskler = table.Column<string>(type: "text", nullable: false),
-                    Tarih = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Tarih = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ZiyaretciId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {

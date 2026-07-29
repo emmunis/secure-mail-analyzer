@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace RubyApi.Models;
 
 public class AnalizKaydi
@@ -8,4 +10,7 @@ public class AnalizKaydi
     public int RiskPuani { get; set; }
     public string BulunanRiskler { get; set; } = string.Empty; // şimdilik virgülle ayrılmış metin
     public DateTime Tarih { get; set; } = DateTime.UtcNow;
+
+    [JsonIgnore]
+    public Guid? ZiyaretciId { get; set; }
 }
