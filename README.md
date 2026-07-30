@@ -10,7 +10,9 @@ Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalı
 bir sistemle tam entegre çalışmaktadır. Analiz işlemleri backend'de
 gerçekleştirilmekte, sonuçlar Supabase (PostgreSQL) veritabanında kalıcı olarak
 saklanmaktadır. Son kullanıcı hesabı gerektirmeyen anonim geçmiş, JWT ile
-korunan admin paneli ve otomatik analiz testleri çalışır durumdadır.
+korunan admin paneli ve otomatik analiz testleri çalışır durumdadır. Uygulama;
+frontend, backend ve PostgreSQL servisleriyle Docker Compose üzerinden de tek
+komutla çalıştırılabilir.
 
 ## Tamamlanan Özellikler
 
@@ -110,16 +112,27 @@ korunan admin paneli ve otomatik analiz testleri çalışır durumdadır.
 - Bağlantı bilgileri `user-secrets` ile güvenli şekilde saklanıyor (koda veya Git'e yazılmıyor)
 </details>
 
+<details>
+<summary><strong>Docker</strong></summary>
+
+- React uygulaması Nginx üzerinden sunulan çok aşamalı bir Docker imajına dönüştürüldü
+- .NET API için ayrı, çok aşamalı ve yetkisiz kullanıcıyla çalışan Docker imajı oluşturuldu
+- PostgreSQL, backend ve frontend servisleri Docker Compose ile birlikte yapılandırıldı
+- Nginx ters proxy ile tarayıcıdaki `/api` istekleri backend servisine yönlendirildi
+- Servis sağlık kontrolleri ve backend başlarken otomatik migration uygulaması eklendi
+- Parola ve JWT anahtarı gibi gizli değerler Git'e eklenmeyen `.env` dosyasına taşındı
+</details>
+
 ## Kullanılan Teknolojiler (Mevcut)
 
 - **Frontend:** React, Vite, CSS3
 - **Backend:** .NET Web API
 - **Veri Erişim:** Entity Framework Core + Npgsql (veritabanı erişimi)
 - **Veritabanı:** PostgreSQL (Supabase üzerinden)
+- **Container:** Docker, Docker Compose, Nginx
 
 ## Planlanan Teknolojiler
 
-- **Container:** Docker, Docker Compose
 - **Orkestrasyon:** Kubernetes (Minikube / Docker Desktop)
 - **Opsiyonel:** LLM entegrasyonu (analiz kalitesini artırmak için)
 
@@ -127,18 +140,54 @@ korunan admin paneli ve otomatik analiz testleri çalışır durumdadır.
 
 ```
 secure-mail-analyzer/
-├── frontend/    # React (Vite) frontend projesi
+├── frontend/          # React (Vite), Nginx yapılandırması ve Dockerfile
 ├── backend/
-│   ├── RubyApi/       # .NET Web API projesi
+│   ├── RubyApi/       # .NET Web API projesi ve Dockerfile
 │   └── RubyApi.Tests/ # Analiz motoru ve istek doğrulama testleri
-├── database/          # Veritabanı yapılandırması (Supabase üzerinden yönetiliyor)
+├── database/          # Veritabanı yapılandırması ve açıklamaları
 ├── k8s/               # Kubernetes YAML dosyaları (henüz başlanmadı)
 ├── docs/              # Ekran görüntüleri ve dokümantasyon
-├── docker-compose.yml # (henüz eklenmedi)
+├── .env.example       # Docker ortam değişkenleri şablonu
+├── docker-compose.yml # Frontend, backend ve PostgreSQL servisleri
 └── README.md
 ```
 
 ## Kurulum ve Çalıştırma
+
+### Docker Compose ile önerilen kurulum
+
+Bu yöntem için yalnızca Docker Desktop veya Docker Engine ile Docker Compose
+gereklidir; Node.js, .NET SDK ya da yerel PostgreSQL kurulmasına gerek yoktur.
+
+1. Örnek ortam dosyasını kopyalayın:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+2. `.env` içindeki `POSTGRES_PASSWORD`, `ADMIN_PASSWORD` ve en az 32 karakterlik
+   `JWT_KEY` değerlerini güçlü, size özel değerlerle değiştirin.
+3. İmajları oluşturup servisleri arka planda başlatın:
+   ```powershell
+   docker compose up --build -d
+   ```
+4. Uygulamayı `http://localhost:8080` adresinden açın. `FRONTEND_PORT` değeri
+   değiştirilirse yeni portu kullanın.
+
+Servislerin durumunu ve kayıtlarını görüntülemek veya servisleri durdurmak için:
+
+```powershell
+docker compose ps
+docker compose logs -f
+docker compose down
+```
+
+PostgreSQL verileri `postgres_data` adlı Docker volume'ünde korunur.
+`docker compose down --volumes` komutu bu volume'ü ve içindeki yerel verileri
+kalıcı olarak siler. Backend ilk açılışta Entity Framework migration'larını
+otomatik uygular; ayrıca SQL komutu çalıştırılması gerekmez.
+
+Docker kurulumu kendi yerel PostgreSQL servisini kullanır. Aşağıdaki manuel
+backend kurulumu ise Supabase veya başka bir PostgreSQL sunucusuyla geliştirme
+yapmak isteyenler içindir.
 
 ### Frontend
 
@@ -229,6 +278,17 @@ sağlık kontrolü eklendi. Analiz motoru ile istek modellerini kapsayan 16
 otomatik test hazırlandı.
 </details>
 
+<details>
+<summary><strong>Faz 5 — Docker ve Docker Compose</strong></summary>
+
+Frontend için Nginx tabanlı, backend için .NET runtime tabanlı çok aşamalı Docker
+imajları oluşturuldu. PostgreSQL, backend ve frontend servisleri Docker Compose
+ile birleştirildi; sağlık kontrolleri, kalıcı veritabanı volume'ü, otomatik
+migration ve Nginx üzerinden API yönlendirmesi yapılandırıldı. Gizli değerlerin
+`.env` ile yönetildiği kurulum akışı dokümante edildi ve sistem container
+ortamında uçtan uca doğrulandı.
+</details>
+
 
 ## Yol Haritası
 
@@ -240,7 +300,7 @@ otomatik test hazırlandı.
 - [x] Analiz motorunda ek kontroller (ek dosya, IP linki, kişiselleştirme eksikliği)
 - [x] Çoklu link, hedef uyuşmazlığı ve karmaşık domain kontrolleri
 - [x] Analiz motoru ve istek doğrulama testleri
-- [ ] Docker ve docker-compose yapılandırması
+- [x] Docker ve Docker Compose yapılandırması
 - [ ] Kubernetes deployment dosyaları
 - [x] Anonim, tarayıcıya özel analiz geçmişi
 - [x] Admin paneli (toplam analiz sayısı, risk dağılımı ve en sık görülen risk tipleri)
