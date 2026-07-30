@@ -76,7 +76,10 @@ if (builder.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     dbContext.Database.Migrate();
 }
 
-app.UseHttpsRedirection();
+if (builder.Configuration.GetValue("HttpsRedirection:Enabled", true))
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("FrontendPolicy");
 app.UseRateLimiter();
 app.UseAuthentication();
