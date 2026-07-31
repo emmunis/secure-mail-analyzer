@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RubyApi.Data;
@@ -11,9 +12,11 @@ using RubyApi.Data;
 namespace RubyApi.Migrations
 {
     [DbContext(typeof(RubyDbContext))]
-    partial class RubyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731170240_RiskPuanDetaylari")]
+    partial class RiskPuanDetaylari
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

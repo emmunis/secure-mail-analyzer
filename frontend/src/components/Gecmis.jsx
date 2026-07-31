@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '../api';
+import AnalizPaylasim from './AnalizPaylasim';
 
 function Gecmis() {
   const [kayitlar, setKayitlar] = useState([]);
@@ -93,8 +94,9 @@ function Gecmis() {
 
           {!yukleniyor && filtrelenmis.map((kayit) => {
             const bulunanRisklerDizi = kayit.bulunanRiskler.split(" | ");
+            const riskPuanlari = kayit.riskPuanDetaylari?.split(" | ").map(Number) || [];
             const tarihMetni = new Date(kayit.tarih).toLocaleString("tr-TR");
-            const skor = Math.min(kayit.riskPuani, 10);
+            const skor = Math.min(kayit.riskPuani, 40);
             const kisaIcerik = kayit.icerik.length > 80
               ? kayit.icerik.substring(0, 80) + "..."
               : kayit.icerik;
@@ -114,7 +116,7 @@ function Gecmis() {
                 <div className="history-item-header">
                   <div className="header-left">
                     <span className={`result-badge risk-${kayit.seviye.toLowerCase()}`}>
-                      {kayit.seviye} Risk ({skor}/10)
+                      {kayit.seviye} Risk ({skor}/40)
                     </span>
                     <span className="result-score" style={{ marginLeft: "10px" }}>
                       {tarihMetni}
@@ -141,11 +143,37 @@ function Gecmis() {
 
                 {acikMi && (
                   <div className="history-details">
-                    <p><strong>Tam İçerik:</strong><br />{kayit.icerik}</p>
-                    <p style={{ marginTop: "10px" }}><strong>Tespit Edilen Riskler:</strong></p>
-                    <ul style={{ marginTop: "5px", paddingLeft: "20px" }}>
-                      {bulunanRisklerDizi.map((risk, i) => <li key={i}>{risk}</li>)}
+                    <div className="result-content-block">
+                      <h3>İncelenen içerik</h3>
+                      <p>{kayit.icerik}</p>
+                    </div>
+
+                    <h3 className="result-section-title">Tespit edilen riskler</h3>
+                    <ul className="result-list">
+                      {bulunanRisklerDizi.map((risk, i) => (
+                        <li key={i}>
+                          <span>{risk}</span>
+                          {(riskPuanlari[i] ?? 0) > 0 && <strong className="risk-point">+{riskPuanlari[i]}</strong>}
+                        </li>
+                      ))}
                     </ul>
+                    {kayit.llmBasarili && (
+                      <div className="llm-result history-llm-result">
+                        <div className="llm-result-title">
+                          <span>✦ Ollama yorumu</span>
+                          <span className="llm-result-note">Ek değerlendirme</span>
+                        </div>
+                        <p>{kayit.llmAciklama}</p>
+                        <p className="llm-score-info">Risk puanı güvenlik kurallarıyla hesaplanmıştır.</p>
+                        <strong>Güvenlik önerileri</strong>
+                        <ul>
+                          {kayit.llmOnerileri?.split(" | ").map((oneri, i) => (
+                            <li key={i}>{oneri}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <AnalizPaylasim analiz={kayit} />
                   </div>
                 )}
               </li>

@@ -13,15 +13,18 @@ public class AnalizController : ControllerBase
 {
     private readonly RubyDbContext _context;
     private readonly AnalizServisi _analizServisi;
+    private readonly ILlmAnalizServisi _llmAnalizServisi;
     private readonly ZiyaretciKimligiServisi _ziyaretciKimligi;
 
     public AnalizController(
         RubyDbContext context,
         AnalizServisi analizServisi,
+        ILlmAnalizServisi llmAnalizServisi,
         ZiyaretciKimligiServisi ziyaretciKimligi)
     {
         _context = context;
         _analizServisi = analizServisi;
+        _llmAnalizServisi = llmAnalizServisi;
         _ziyaretciKimligi = ziyaretciKimligi;
     }
 
@@ -33,6 +36,23 @@ public class AnalizController : ControllerBase
             return BadRequest("İçerik boş olamaz.");
 
         var sonuc = _analizServisi.AnalizEt(istek.Icerik);
+        sonuc.LlmIstendi = istek.LlmIleYorumla;
+
+        if (istek.LlmIleYorumla)
+        {
+            var llmSonucu = await _llmAnalizServisi.YorumlaAsync(
+                istek.Icerik,
+                sonuc,
+                HttpContext.RequestAborted);
+
+            if (llmSonucu is not null)
+            {
+                sonuc.LlmBasarili = true;
+                sonuc.LlmAciklama = llmSonucu.Aciklama;
+                sonuc.LlmOnerileri = string.Join(" | ", llmSonucu.Oneriler);
+            }
+        }
+
         sonuc.ZiyaretciId = _ziyaretciKimligi.GetirVeyaOlustur();
 
         _context.AnalizKayitlari.Add(sonuc);

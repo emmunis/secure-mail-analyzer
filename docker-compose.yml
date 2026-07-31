@@ -15,6 +15,32 @@ services:
       retries: 10
       start_period: 10s
 
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  ollama-model:
+    image: curlimages/curl:8.16.0
+    restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command:
+      - --fail
+      - --show-error
+      - --silent
+      - http://ollama:11434/api/pull
+      - --data
+      - '{"model":"qwen3:1.7b","stream":false}'
+
   backend:
     build:
       context: ./backend/RubyApi
@@ -29,9 +55,15 @@ services:
       Database__MigrateOnStartup: "true"
       HttpsRedirection__Enabled: "false"
       Frontend__Origins__0: http://localhost:${FRONTEND_PORT:-8080}
+      Ollama__Enabled: "true"
+      Ollama__BaseUrl: http://ollama:11434/
+      Ollama__Model: qwen3:1.7b
+      Ollama__TimeoutSeconds: "60"
     depends_on:
       postgres:
         condition: service_healthy
+      ollama-model:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
       interval: 10s
@@ -53,3 +85,4 @@ services:
 
 volumes:
   postgres_data:
+  ollama_data:
