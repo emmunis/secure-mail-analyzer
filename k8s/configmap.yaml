@@ -12,4 +12,8 @@ data:
   HttpsRedirection__Enabled: "false"
   Frontend__Origins__0: http://localhost:30080
   Jwt__Issuer: RubyApi
+  Ollama__Enabled: "true"
+  Ollama__BaseUrl: http://ollama:11434/
+  Ollama__Model: qwen3:1.7b
+  Ollama__TimeoutSeconds: "60"
 

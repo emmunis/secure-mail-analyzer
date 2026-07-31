@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RubyApi.Data;
@@ -11,9 +12,11 @@ using RubyApi.Data;
 namespace RubyApi.Migrations
 {
     [DbContext(typeof(RubyDbContext))]
-    partial class RubyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731154955_LlmEntegrasyonu")]
+    partial class LlmEntegrasyonu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,10 +51,6 @@ namespace RubyApi.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("LlmOnerileri")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RiskPuanDetaylari")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("RiskPuani")

@@ -8,11 +8,14 @@ Kullanıcıların girdiği e-posta içeriğini veya bağlantıyı analiz ederek 
 
 Frontend React ile geliştirilmektedir ve backend .NET Web API üzerinden çalışan
 bir sistemle tam entegre çalışmaktadır. Analiz işlemleri backend'de
-gerçekleştirilmekte, sonuçlar Supabase (PostgreSQL) veritabanında kalıcı olarak
-saklanmaktadır. Son kullanıcı hesabı gerektirmeyen anonim geçmiş, JWT ile
-korunan admin paneli ve otomatik analiz testleri çalışır durumdadır. Uygulama;
-frontend, backend ve PostgreSQL servisleriyle Docker Compose üzerinden de tek
-komutla çalıştırılabilir.
+gerçekleştirilmekte, sonuçlar yapılandırılan PostgreSQL veritabanında kalıcı
+olarak saklanmaktadır. Manuel geliştirmede Supabase veya başka bir PostgreSQL
+sunucusu; Docker Compose ve Kubernetes kurulumlarında ise yerel PostgreSQL
+kullanılabilir. Son kullanıcı hesabı gerektirmeyen anonim geçmiş, JWT ile
+korunan admin paneli ve otomatik analiz testleri çalışır durumdadır. Kural tabanlı
+sonuçlara isteğe bağlı yerel Ollama açıklaması eklenebilir. Uygulama; frontend,
+backend, PostgreSQL ve Ollama servisleriyle Docker Compose üzerinden tek komutla
+çalıştırılabilir.
 
 ## Tamamlanan Özellikler
 
@@ -28,26 +31,40 @@ komutla çalıştırılabilir.
 - Şüpheli ek dosya ifadelerinin tespiti (.exe, .zip, "eki inceleyin" vb.)
 - Kişiselleştirilmemiş, genel hitap tespiti (örn. "Sayın kullanıcı")
 - Bilinen marka taklidi tespiti (örn. marka adı geçip resmi domain ile eşleşmiyorsa)
-- Toplanan puana göre düşük / orta / yüksek risk seviyesi belirleme
+- Ağırlıklı bulgularla 0–40 risk puanı hesaplama; 0–5 düşük, 6–14 orta ve 15–40 yüksek seviye belirleme
+</details>
+
+<details>
+<summary><strong>Yerel LLM desteği</strong></summary>
+
+- Varsayılan açık “LLM ile yorumla” seçeneğiyle Ollama üzerinden ek değerlendirme
+- Yaklaşık 1,4 GB boyutundaki çok dilli `qwen3:1.7b` modeliyle tamamen yerel çalışma
+- Kural tabanlı risk puanı ve seviyesini değiştirmeyen açıklama ve güvenlik önerileri
+- JSON şeması, düşük sıcaklık ve güvenilmeyen içerik talimatlarını yok sayan sistem istemi
+- Ollama kapalı, model eksik veya zaman aşımında olsa da analizi tamamlayan güvenli fallback
+- LLM açıklaması ve önerilerinin analiz geçmişinde saklanıp yeniden görüntülenmesi
 </details>
 
 <details>
 <summary><strong>Sonuç ekranı</strong></summary>
 
 - Risk seviyesini renkli bir rozetle gösterme
-- Hesaplanan risk puanını görüntüleme
-- Tespit edilen risk unsurlarını liste halinde sunma
-- Analiz sırasında kısa süreli "Analiz ediliyor..." yükleme durumu simülasyonu
+- Hesaplanan 0–40 risk puanını ve her bulgunun puan katkısını görüntüleme
+- İncelenen içeriği, kırmızı vurgulu risk satırlarını ve Ollama yorumunu düzenli kart yapısında sunma
+- İçerik ve sonucun tamamını biçimlendirilmiş metin olarak panoya kopyalama
+- İlgili analiz kartını site temasıyla uyumlu, yüksek çözünürlüklü PNG raporu olarak indirme
+- LLM açık/kapalı durumuna uygun analiz yükleme bildirimi
 </details>
 
 <details>
 <summary><strong>Geçmiş sekmesi</strong></summary>
 
-- Önceki analizlerin listelenmesi (Supabase veritabanından çekiliyor)
+- Önceki analizlerin yapılandırılan PostgreSQL veritabanından listelenmesi
 - Risk seviyesine göre filtreleme (düşük / orta / yüksek / tümü)
 - Tekil kayıt silme (onay istemiyle, backend'den kalıcı olarak siliniyor)
 - Tüm geçmişi toplu temizleme (onay istemiyle)
 - Kayıt üzerine tıklayınca tam içerik ve tespit edilen risklerin genişleyerek görüntülenmesi
+- Geçmiş detayından sonucu metin olarak kopyalama veya PNG raporu indirme
 </details>
 
 <details>
@@ -73,7 +90,8 @@ komutla çalıştırılabilir.
 
 - Oltalama tekniklerini örnek arayüz mockup'larıyla anlatan kartlar (marka taklidi, görünmez karakter, header tutarsızlığı vb.)
 - "Daha fazla ayrıntı" açılır paneli ile ek güvenlik ipuçları
-- Sık Sorulan Sorular (SSS) bölümü, akordeon yapısında
+- Veri saklama ve anonim toplu istatistik kullanımını açıkça bildiren SSS bölümü
+- Kural tabanlı puanlama ile Ollama yorumunun ayrımını açıklayan akordeon yapısı
 </details>
 
 <details>
@@ -88,7 +106,8 @@ komutla çalıştırılabilir.
 <summary><strong>React Bileşen Yapısı</strong></summary>
 
 - Arayüz; Header, Hero, AnalizFormu, Slider, BlogBolumu, Gecmis, Profil,
-  AdminPanel, Faq ve Footer olmak üzere bağımsız React bileşenlerine ayrıldı
+  AdminPanel, AnalizPaylasim, Faq ve Footer olmak üzere bağımsız React
+  bileşenlerine ayrıldı
 - Sekme yönlendirmesi, önceki doğrudan DOM manipülasyonu yerine React'in durum yönetimi (`useState`) ile yeniden kurgulandı
 - Sayfa başlığı ve favicon yapılandırması güncellendi, sekmeler arası geçiş animasyonu React bileşen yaşam döngüsüne uygun şekilde sağlandı
 </details>
@@ -96,7 +115,7 @@ komutla çalıştırılabilir.
 <details>
 <summary><strong>Backend ve Veritabanı</strong></summary>
 
-- .NET Web API projesi (`RubyApi`) oluşturuldu ve Supabase (PostgreSQL) veritabanına Entity Framework Core ile bağlandı
+- .NET Web API projesi (`RubyApi`) oluşturuldu ve PostgreSQL veritabanına Entity Framework Core ile bağlandı; manuel kurulumda Supabase desteklenir
 - Analiz mantığı JavaScript'ten C#'a taşındı (`AnalizServisi`)
 - `POST /api/analiz` — içerik gönderip analiz sonucu alma ve veritabanına kaydetme
 - `GET /api/analiz` — geçmiş analizleri listeleme
@@ -117,10 +136,20 @@ komutla çalıştırılabilir.
 
 - React uygulaması Nginx üzerinden sunulan çok aşamalı bir Docker imajına dönüştürüldü
 - .NET API için ayrı, çok aşamalı ve yetkisiz kullanıcıyla çalışan Docker imajı oluşturuldu
-- PostgreSQL, backend ve frontend servisleri Docker Compose ile birlikte yapılandırıldı
+- PostgreSQL, Ollama, backend ve frontend servisleri Docker Compose ile birlikte yapılandırıldı
 - Nginx ters proxy ile tarayıcıdaki `/api` istekleri backend servisine yönlendirildi
 - Servis sağlık kontrolleri ve backend başlarken otomatik migration uygulaması eklendi
 - Parola ve JWT anahtarı gibi gizli değerler Git'e eklenmeyen `.env` dosyasına taşındı
+</details>
+
+<details>
+<summary><strong>Kubernetes</strong></summary>
+
+- PostgreSQL, Ollama, backend ve frontend için ayrı Deployment ve Service kaynakları
+- PostgreSQL verileri, Data Protection anahtarları ve Ollama modeli için kalıcı PVC'ler
+- ConfigMap/Secret ayrımı, sağlık kontrolleri ve kaynak sınırları
+- Yerel imaj oluşturma, Secret üretme, migration, model indirme ve rollout kontrolünü yöneten PowerShell dağıtım scripti
+- Nginx ve NodePort üzerinden `http://localhost:30080` adresinden erişim
 </details>
 
 ## Kullanılan Teknolojiler (Mevcut)
@@ -128,13 +157,14 @@ komutla çalıştırılabilir.
 - **Frontend:** React, Vite, CSS3
 - **Backend:** .NET Web API
 - **Veri Erişim:** Entity Framework Core + Npgsql (veritabanı erişimi)
-- **Veritabanı:** PostgreSQL (Supabase üzerinden)
+- **Veritabanı:** PostgreSQL (container ortamında yerel; manuel geliştirmede Supabase veya harici PostgreSQL)
 - **Container:** Docker, Docker Compose, Nginx
 - **Orkestrasyon:** Kubernetes (Docker Desktop)
+- **Yerel LLM:** Ollama + Qwen3 1.7B
 
 ## Planlanan Teknolojiler
 
-- **Opsiyonel:** LLM entegrasyonu (analiz kalitesini artırmak için)
+- Projenin zorunlu ve opsiyonel ana teknoloji adımları tamamlandı.
 
 ## Klasör Yapısı
 
@@ -148,7 +178,7 @@ secure-mail-analyzer/
 ├── k8s/               # Kubernetes manifestleri ve dağıtım scripti
 ├── docs/              # Ekran görüntüleri ve dokümantasyon
 ├── .env.example       # Docker ortam değişkenleri şablonu
-├── docker-compose.yml # Frontend, backend ve PostgreSQL servisleri
+├── docker-compose.yml # Frontend, backend, PostgreSQL ve Ollama servisleri
 └── README.md
 ```
 
@@ -174,11 +204,16 @@ Node.js, .NET SDK ve yerel PostgreSQL kurulumu gerekmez.
    ```powershell
    Copy-Item .env.example .env
    ```
-2. Frontend, backend ve PostgreSQL servislerini başlatın:
+2. Frontend, backend, PostgreSQL ve Ollama servislerini başlatın:
    ```powershell
    docker compose up --build -d
    ```
 3. `http://localhost:8080` adresini açın.
+
+İlk çalıştırmada resmî Ollama Docker imajı (Windows/amd64 için sıkıştırılmış
+yaklaşık 3,04 GB) ve `qwen3:1.7b` modeli (yaklaşık 1,4 GB) indirilir. Bu nedenle
+ilk açılış birkaç dakika sürebilir. Model `ollama_data` volume'ünde saklanır ve
+volume silinmediği sürece tekrar indirilmez.
 
 Yönetim komutları:
 
@@ -188,15 +223,25 @@ docker compose logs -f
 docker compose down
 ```
 
-Veriler `postgres_data` adlı Docker volume'ünde korunur. `docker compose down --volumes`
-komutu bu yerel verileri kalıcı olarak siler. Migration'lar backend başlarken
-otomatik uygulanır.
+Veriler `postgres_data`, LLM modeli ise `ollama_data` adlı Docker volume'lerinde
+korunur. `docker compose down --volumes` komutu hem yerel veritabanını hem modeli
+kalıcı olarak siler. Migration'lar backend başlarken otomatik uygulanır.
 
 ### Yöntem 2 — Manuel frontend/backend geliştirme
 
 Bu yöntem kod üzerinde geliştirme yaparken frontend ve backend süreçlerini ayrı
 terminallerde çalıştırmak içindir. Node.js, .NET 10 SDK ve erişilebilir bir
 PostgreSQL veritabanı gerekir.
+
+LLM yorumunu manuel geliştirmede kullanmak için [Ollama](https://ollama.com/download)
+kurulmalı ve model bir kez indirilmelidir:
+
+```powershell
+ollama pull qwen3:1.7b
+```
+
+Ollama kurulmazsa veya çalışmıyorsa uygulama kural tabanlı analizle çalışmaya
+devam eder ve LLM yorumunun kullanılamadığını bildirir.
 
 #### Backend
 
@@ -252,8 +297,10 @@ powershell -ExecutionPolicy Bypass -File .\k8s\deploy.ps1
 ```
 
 Script Docker imajlarını oluşturur, `.env` değerlerinden Kubernetes Secret
-üretir, manifestleri uygular ve deployment'ların hazır olmasını bekler. Gizli
-değerler Git'e yazılmaz. Uygulama `http://localhost:30080` adresinden açılır.
+üretir, manifestleri uygular, `qwen3:1.7b` modelini Ollama PVC'sine indirir ve
+deployment'ların hazır olmasını bekler. Gizli değerler Git'e yazılmaz. İlk
+dağıtım model indirmesi nedeniyle uzayabilir. Uygulama `http://localhost:30080`
+adresinden açılır.
 
 Kubernetes yönetim komutları:
 
@@ -264,9 +311,10 @@ kubectl logs deployment/frontend --namespace ruby-app
 kubectl delete namespace ruby-app
 ```
 
-Son komut namespace ile birlikte PostgreSQL ve Data Protection PVC'lerindeki
-yerel verileri de siler. PostgreSQL parolası ilk kurulumdan sonra değiştirilirse
-PVC eski parolayı koruyacağından namespace silinip yeniden dağıtılmalıdır.
+Son komut namespace ile birlikte PostgreSQL, Data Protection ve Ollama
+PVC'lerindeki yerel verileri/modeli de siler. PostgreSQL parolası ilk kurulumdan
+sonra değiştirilirse PVC eski parolayı koruyacağından namespace silinip yeniden
+dağıtılmalıdır.
 
 ### Geliştirici notları
 
@@ -277,10 +325,10 @@ cd backend
 dotnet run --project RubyApi.Tests/RubyApi.Tests.csproj
 ```
 
-`backend/RubyApi/Migrations/` altındaki migration dosyaları ve
-`RubyDbContextModelSnapshot.cs`, veritabanının sıfırdan kurulabilmesi için repoda
-bulunmalıdır. Projedeki temiz `Baslangic` migration'ının uygulanması yeterlidir;
-ayrıca `database/` altındaki bir SQL dosyasını çalıştırmak gerekmez.
+`backend/RubyApi/Migrations/` altındaki tüm migration dosyaları ve
+`RubyDbContextModelSnapshot.cs`, veritabanının sıfırdan kurulabilmesi ve güncel
+şemaya yükseltilebilmesi için repoda bulunmalıdır. Migration'lar sırayla
+uygulanır; ayrıca `database/` altındaki bir SQL dosyasını çalıştırmak gerekmez.
 
 ## Geliştirme Geçmişi (Fazlar)
 
@@ -319,7 +367,7 @@ otomatik test hazırlandı.
 </details>
 
 <details>
-<summary><strong>Faz 5 — Docker ve Docker Compose</strong></summary>
+<summary><strong>Faz 5 — Docker ve Docker Compose</strong> <code>v0.5-docker</code></summary>
 
 Frontend için Nginx tabanlı, backend için .NET runtime tabanlı çok aşamalı Docker
 imajları oluşturuldu. PostgreSQL, backend ve frontend servisleri Docker Compose
@@ -330,7 +378,7 @@ ortamında uçtan uca doğrulandı.
 </details>
 
 <details>
-<summary><strong>Faz 6 — Kubernetes Orkestrasyonu</strong></summary>
+<summary><strong>Faz 6 — Kubernetes Orkestrasyonu</strong> <code>v0.6-kubernetes</code></summary>
 
 PostgreSQL, .NET backend ve Nginx tabanlı React frontend Kubernetes Deployment ve
 Service kaynaklarına dönüştürüldü. PostgreSQL verileri ile backend Data Protection
@@ -339,6 +387,22 @@ ConfigMap, Secret, başlangıç/bekleme akışı, liveness-readiness-startup pro
 kaynak sınırları ve NodePort erişimi yapılandırıldı. Yerel imaj oluşturma ve
 dağıtım adımları PowerShell scriptiyle otomatikleştirilerek pod yenileme ve anonim
 geçmiş sürekliliği dâhil uçtan uca doğrulandı.
+</details>
+
+<details>
+<summary><strong>Faz 7 — Yerel LLM ve Raporlama</strong> <code>v0.7-llm</code></summary>
+
+Mevcut kural tabanlı analiz korunarak Ollama ve `qwen3:1.7b` modeliyle çalışan
+opsiyonel bir açıklama katmanı eklendi. Varsayılan açık kullanıcı seçeneğiyle LLM,
+kural bulgularına göre Türkçe açıklama ve güvenlik önerileri üretir; puan ve risk
+seviyesi yalnızca deterministik analiz motoru tarafından belirlenmeye devam eder.
+Yapılandırılmış JSON yanıtı, içerik sınırı, prompt-injection önlemi, zaman aşımı
+ve servis kesintisinde fallback davranışı geliştirildi. Docker Compose ve
+Kubernetes dağıtımları Ollama ile model kalıcılığını kapsayacak şekilde güncellendi.
+Risk puanı 0–40 ölçeğine taşındı ve bulgu katkıları kaydedildi. Sonuç/geçmiş
+kartları yenilendi; biçimlendirilmiş metin kopyalama ve site temalı PNG raporu
+indirme özellikleri eklendi. Veri kullanımı ile LLM davranışı SSS bölümünde açıkça
+belgelendi ve otomatik test sayısı 27'ye çıkarıldı.
 </details>
 
 
@@ -356,4 +420,5 @@ geçmiş sürekliliği dâhil uçtan uca doğrulandı.
 - [x] Kubernetes deployment dosyaları
 - [x] Anonim, tarayıcıya özel analiz geçmişi
 - [x] Admin paneli (toplam analiz sayısı, risk dağılımı ve en sık görülen risk tipleri)
-- [ ] LLM entegrasyonu (opsiyonel)
+- [x] Yerel Ollama LLM entegrasyonu (opsiyonel açıklama ve güvenlik önerileri)
+- [x] Sonuçları metin olarak kopyalama ve temalı PNG raporu indirme

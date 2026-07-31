@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { apiFetch } from '../api';
+import AnalizPaylasim from './AnalizPaylasim';
 
 function AnalizFormu() {
   const [icerik, setIcerik] = useState("");
   const [yukleniyor, setYukleniyor] = useState(false);
   const [sonuc, setSonuc] = useState(null); // null = henüz analiz yapılmadı
+  const [llmIleYorumla, setLlmIleYorumla] = useState(true);
 
   async function analizEt() {
     const temizIcerik = icerik.trim();
@@ -21,7 +23,7 @@ function AnalizFormu() {
       const response = await apiFetch("/analiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ icerik: temizIcerik }),
+        body: JSON.stringify({ icerik: temizIcerik, llmIleYorumla }),
       });
 
       if (!response.ok) {
@@ -41,6 +43,8 @@ function AnalizFormu() {
       setSonuc({
         ...veri,
         bulunanRiskler: veri.bulunanRiskler.split(" | "),
+        riskPuanDetaylari: veri.riskPuanDetaylari?.split(" | ").map(Number) || [],
+        llmOnerileri: veri.llmOnerileri?.split(" | ") || [],
       });
     } catch (hata) {
       console.error("Analiz sırasında hata:", hata);
@@ -89,10 +93,25 @@ function AnalizFormu() {
           </div>
         </div>
 
+        <label className="llm-option">
+          <input
+            type="checkbox"
+            checked={llmIleYorumla}
+            disabled={yukleniyor}
+            onChange={(e) => setLlmIleYorumla(e.target.checked)}
+          />
+          <span>
+            <strong>LLM ile yorumla</strong>
+            <small>Ollama, kural tabanlı sonuca ek açıklama ve güvenlik önerileri üretir.</small>
+          </span>
+        </label>
+
         <div className="content-footer">
           <span className="character-counter">{icerik.length}/20.000</span>
           <button className="btn" disabled={yukleniyor} onClick={analizEt}>
-            {yukleniyor ? "Analiz ediliyor..." : "Analiz Et"}
+            {yukleniyor
+              ? (llmIleYorumla ? "Analiz ediliyor ve yorumlanıyor..." : "Analiz ediliyor...")
+              : "Analiz Et"}
           </button>
         </div>
 
@@ -102,13 +121,50 @@ function AnalizFormu() {
               <span className={`result-badge risk-${sonuc.seviye.toLowerCase()}`}>
                 {sonuc.seviye}
               </span>
-              <span className="result-score">Risk puanı: {sonuc.riskPuani}</span>
+              <span className="result-score">Risk puanı: {sonuc.riskPuani}/40</span>
             </div>
+
+            <div className="result-content-block">
+              <h3>İncelenen içerik</h3>
+              <p>{sonuc.icerik || icerik.trim()}</p>
+            </div>
+
+            <h3 className="result-section-title">Tespit edilen riskler</h3>
             <ul className="result-list">
               {sonuc.bulunanRiskler.map((risk, index) => (
-                <li key={index}>{risk}</li>
+                <li key={index}>
+                  <span>{risk}</span>
+                  {(sonuc.riskPuanDetaylari[index] ?? 0) > 0 && (
+                    <strong className="risk-point">+{sonuc.riskPuanDetaylari[index]}</strong>
+                  )}
+                </li>
               ))}
             </ul>
+
+            {sonuc.llmBasarili && (
+              <div className="llm-result">
+                <div className="llm-result-title">
+                  <span>✦ Ollama yorumu</span>
+                  <span className="llm-result-note">Ek değerlendirme</span>
+                </div>
+                <p>{sonuc.llmAciklama}</p>
+                <p className="llm-score-info">Risk puanı güvenlik kurallarıyla hesaplanmıştır.</p>
+                <strong>Güvenlik önerileri</strong>
+                <ul>
+                  {sonuc.llmOnerileri.map((oneri, index) => (
+                    <li key={index}>{oneri}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {sonuc.llmIstendi && !sonuc.llmBasarili && (
+              <p className="llm-unavailable">
+                LLM yorumuna ulaşılamadı. Yukarıdaki kural tabanlı analiz sonucu geçerlidir.
+              </p>
+            )}
+
+            <AnalizPaylasim analiz={sonuc} />
           </div>
         )}
       </div>

@@ -12,6 +12,12 @@
     <Compile Include="..\RubyApi\Models\AnalizKaydi.cs" Link="Models\AnalizKaydi.cs" />
     <Compile Include="..\RubyApi\Models\AnalizIstek.cs" Link="Models\AnalizIstek.cs" />
     <Compile Include="..\RubyApi\Services\AnalizServisi.cs" Link="Services\AnalizServisi.cs" />
+    <Compile Include="..\RubyApi\Services\ILlmAnalizServisi.cs" Link="Services\ILlmAnalizServisi.cs" />
+    <Compile Include="..\RubyApi\Services\OllamaAnalizServisi.cs" Link="Services\OllamaAnalizServisi.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

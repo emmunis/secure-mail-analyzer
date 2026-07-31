@@ -12,6 +12,12 @@ builder.Services.AddDbContext<RubyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("RubyDb")));
 
 builder.Services.AddScoped<AnalizServisi>();
+builder.Services.AddHttpClient<ILlmAnalizServisi, OllamaAnalizServisi>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri(configuration["Ollama:BaseUrl"] ?? "http://localhost:11434/");
+    client.Timeout = TimeSpan.FromSeconds(configuration.GetValue("Ollama:TimeoutSeconds", 60));
+});
 builder.Services.AddScoped<ZiyaretciKimligiServisi>();
 builder.Services.AddScoped<AdminTokenServisi>();
 builder.Services.AddHttpContextAccessor();

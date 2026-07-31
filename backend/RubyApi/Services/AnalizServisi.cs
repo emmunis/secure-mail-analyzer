@@ -6,7 +6,7 @@ namespace RubyApi.Services;
 
 public class AnalizServisi
 {
-    private const int MaksimumRiskPuani = 10;
+    public const int MaksimumRiskPuani = 40;
 
     private static readonly Regex UrlRegex = new(
         @"(?:https?://|www\.)[^\s<>'""]+",
@@ -47,6 +47,7 @@ public class AnalizServisi
 
         var riskPuani = 0;
         var bulunanRiskler = new List<string>();
+        var riskPuanDetaylari = new List<int>();
         var eklenenRiskler = new HashSet<string>(StringComparer.Ordinal);
         var metin = icerik.ToLowerInvariant();
 
@@ -56,24 +57,28 @@ public class AnalizServisi
                 return;
 
             bulunanRiskler.Add(aciklama);
-            riskPuani = Math.Min(MaksimumRiskPuani, riskPuani + puan);
+            var uygulananPuan = Math.Min(puan, MaksimumRiskPuani - riskPuani);
+            riskPuanDetaylari.Add(uygulananPuan);
+            riskPuani += uygulananPuan;
         }
 
         var aciliyetKelimeleri = new[]
         {
-            "hemen", "acil", "şimdi tıklayın", "son gün", "24 saat",
-            "hesabınız kapatılacak", "son uyarı", "derhal", "askıya alınacak"
+            "hemen", "acil", "şimdi tıklayın", "son gün", "24 saat", "15 dakika",
+            "hesabınız kapatılacak", "hesabınızın kapanmaması", "kalıcı olarak silinecektir",
+            "son uyarı", "derhal", "askıya alınacak", "yasal işlem", "icra"
         };
         if (aciliyetKelimeleri.Any(metin.Contains))
-            RiskEkle("Aciliyet veya baskı dili tespit edildi", 2);
+            RiskEkle("Aciliyet veya baskı dili tespit edildi", 6);
 
         var veriKelimeleri = new[]
         {
-            "şifrenizi", "şifre", "kart numarası", "tc kimlik",
-            "hesap bilgileriniz", "cvv", "doğrulama kodu", "tek kullanımlık kod"
+            "şifrenizi", "şifre", "parolanızı", "parola", "kullanıcı adınızı",
+            "kart numarası", "kart numaranız", "tc kimlik", "hesap bilgileriniz",
+            "cvv", "sms kodu", "doğrulama kodu", "tek kullanımlık kod"
         };
         if (veriKelimeleri.Any(metin.Contains))
-            RiskEkle("Kişisel veri veya ödeme bilgisi talebi tespit edildi", 3);
+            RiskEkle("Kişisel veri veya ödeme bilgisi talebi tespit edildi", 9);
 
         var uriler = UrlRegex.Matches(icerik)
             .Select(match => LinkiTemizle(match.Value))
@@ -88,28 +93,30 @@ public class AnalizServisi
             var host = uri.IdnHost.TrimEnd('.').ToLowerInvariant();
 
             if (!uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
-                RiskEkle("Link HTTPS kullanmıyor", 1);
+                RiskEkle("Link HTTPS kullanmıyor", 3);
 
             if (uri.AbsoluteUri.Length > 100)
-                RiskEkle("Link uzunluğu şüpheli derecede fazla", 1);
+                RiskEkle("Link uzunluğu şüpheli derecede fazla", 2);
 
             if (LinkKisalticilar.Any(k => DomainEslesiyor(host, k)))
-                RiskEkle("Link kısaltıcı servis kullanılmış", 2);
+                RiskEkle("Link kısaltıcı servis kullanılmış", 6);
 
-            if (IPAddress.TryParse(host, out _))
-                RiskEkle("Bağlantı bir domain yerine doğrudan IP adresine yönlendiriyor", 3);
+            var dogrudanIpAdresi = IPAddress.TryParse(host, out _);
+            if (dogrudanIpAdresi)
+                RiskEkle("Bağlantı bir domain yerine doğrudan IP adresine yönlendiriyor", 7);
 
             var karmasikKarakterSayisi = host.Count(c => c == '-' || char.IsDigit(c));
             var uzunEtiketVar = host.Split('.').Any(label => label.Length > 30);
-            if (karmasikKarakterSayisi >= 5 || host.Length > 45 || uzunEtiketVar)
-                RiskEkle("Domain yapısı olağandışı uzun veya karmaşık", 1);
+            if (!dogrudanIpAdresi
+                && (karmasikKarakterSayisi >= 5 || host.Length > 45 || uzunEtiketVar))
+                RiskEkle("Domain yapısı olağandışı uzun veya karmaşık", 3);
 
             if (host.Contains("xn--", StringComparison.OrdinalIgnoreCase))
-                RiskEkle("Domain benzer görünümlü uluslararası karakterler içeriyor olabilir", 2);
+                RiskEkle("Domain benzer görünümlü uluslararası karakterler içeriyor olabilir", 6);
         }
 
         if (GorunenAdresHedefleUyusmuyor(icerik))
-            RiskEkle("Görünen link metni gerçek hedef adresiyle eşleşmiyor", 3);
+            RiskEkle("Görünen link metni gerçek hedef adresiyle eşleşmiyor", 8);
 
         var ekDosyaKelimeleri = new[]
         {
@@ -117,14 +124,14 @@ public class AnalizServisi
             ".js", ".vbs", ".iso", "makro"
         };
         if (ekDosyaKelimeleri.Any(metin.Contains))
-            RiskEkle("Şüpheli ek dosya ifadesi tespit edildi", 2);
+            RiskEkle("Şüpheli ek dosya ifadesi tespit edildi", 7);
 
         var genelHitaplar = new[]
         {
             "değerli müşterimiz", "sayın kullanıcı", "değerli üyemiz", "dear customer"
         };
         if (genelHitaplar.Any(metin.Contains))
-            RiskEkle("Kişiselleştirilmemiş, genel bir hitap kullanılmış", 1);
+            RiskEkle("Kişiselleştirilmemiş, genel bir hitap kullanılmış", 2);
 
         foreach (var (marka, resmiDomainler) in MarkaDomainleri)
         {
@@ -135,16 +142,19 @@ public class AnalizServisi
                 resmiDomainler.Any(domain => DomainEslesiyor(uri.IdnHost, domain)));
 
             if (!markaResmiAdreseYonleniyor)
-                RiskEkle($"\"{marka}\" markası geçiyor ancak bağlantı resmi domainle eşleşmiyor", 2);
+                RiskEkle($"\"{marka}\" markası geçiyor ancak bağlantı resmi domainle eşleşmiyor", 7);
         }
 
         if (bulunanRiskler.Count == 0)
+        {
             bulunanRiskler.Add("Belirgin bir risk unsuru tespit edilmedi");
+            riskPuanDetaylari.Add(0);
+        }
 
         var seviye = riskPuani switch
         {
-            >= 5 => "Yüksek",
-            >= 2 => "Orta",
+            >= 15 => "Yüksek",
+            >= 6 => "Orta",
             _ => "Düşük"
         };
 
@@ -154,6 +164,7 @@ public class AnalizServisi
             Seviye = seviye,
             RiskPuani = riskPuani,
             BulunanRiskler = string.Join(" | ", bulunanRiskler),
+            RiskPuanDetaylari = string.Join(" | ", riskPuanDetaylari),
             Tarih = DateTime.UtcNow
         };
     }

@@ -49,8 +49,14 @@ try {
         --output yaml | kubectl apply -f -
 
     kubectl apply -k k8s
-    kubectl rollout restart deployment/backend deployment/frontend --namespace ruby-app
     kubectl rollout status deployment/postgres --namespace ruby-app --timeout=180s
+    kubectl rollout status deployment/ollama --namespace ruby-app --timeout=180s
+    $ollamaModels = kubectl exec deployment/ollama --namespace ruby-app -- ollama list
+    if ($ollamaModels -match "gemma3:1b") {
+        kubectl exec deployment/ollama --namespace ruby-app -- ollama rm gemma3:1b
+    }
+    kubectl exec deployment/ollama --namespace ruby-app -- ollama pull qwen3:1.7b
+    kubectl rollout restart deployment/backend deployment/frontend --namespace ruby-app
     kubectl rollout status deployment/backend --namespace ruby-app --timeout=180s
     kubectl rollout status deployment/frontend --namespace ruby-app --timeout=180s
     kubectl get pods,services,persistentvolumeclaims --namespace ruby-app

@@ -3,23 +3,27 @@ import { useState } from 'react';
 const SORULAR = [
   {
     soru: "Ruby tam olarak ne işe yarar?",
-    cevap: "Ruby, size gelen şüpheli e-posta, SMS veya bağlantıları (linkleri) gelişmiş yapay zeka algoritmalarıyla analiz ederek oltalama (phishing) saldırılarına karşı sizi koruyan dijital bir güvenlik asistanıdır.",
+    cevap: "Ruby; şüpheli e-posta, SMS ve bağlantıları güvenlik kurallarıyla tarar, 40 üzerinden bir risk puanı hesaplar ve tespit ettiği göstergeleri açıklar. İsterseniz Ollama desteğiyle sonuca ek bir senaryo değerlendirmesi ve güvenlik önerileri de eklenir.",
   },
   {
     soru: "Analiz işlemi ne kadar sürer?",
-    cevap: "Gelişmiş mimarimiz sayesinde analiz işlemi genellikle saniyeler içinde tamamlanır. Sistem, metni ve bağlantıları tarayarak size anında detaylı bir risk skoru ve raporu sunar.",
+    cevap: "Kural tabanlı tarama genellikle birkaç saniye içinde tamamlanır. LLM ile yorumlama açıksa süre; kullanılan cihaza, Ollama modelinin hazır olup olmadığına ve içerik uzunluğuna göre biraz artabilir.",
   },
   {
     soru: "Kişisel verilerim analiz sırasında kaydediliyor mu?",
-    cevap: "Gizliliğiniz bizim için ön plandadır. Analiz için yapıştırdığınız içerikler yalnızca o anki güvenlik taraması için işlenir ve analiz bittikten sonra sizin kendi \"Geçmiş\" sekmeniz dışında hiçbir veritabanında açık metin olarak saklanmaz.",
+    cevap: "Analiz içeriği ve sonucu, yalnızca aynı ziyaretçiye ait Geçmiş ekranının çalışabilmesi için kaydedilir. Ayrıca hangi risk türlerinin daha sık görüldüğünü toplu olarak ölçerek farkındalık çalışmalarımızı geliştirmek için anonim istatistiklerden yararlanırız; yönetim ekranında mesaj içeriği yerine bu toplulaştırılmış risk verileri gösterilir. Bu kullanımı size açıkça bildiriyor, analiz alanına gereksiz kişisel bilgi eklememenizi öneriyoruz.",
   },
   {
     soru: "Hangi tür tehditleri tespit edebilir?",
-    cevap: "Ruby; sahte ve manipüle edilmiş domainleri, Kiril/Yunan alfabesiyle gizlenmiş görünmez karakterleri, sahte gönderici adreslerini ve kurbanı paniğe sürükleyen psikolojik baskı dillerini başarıyla tespit eder.",
+    cevap: "Ruby; aciliyet ve baskı dili, parola veya ödeme bilgisi talepleri, güvensiz HTTP bağlantıları, doğrudan IP adresleri, link kısaltıcılar, şüpheli dosya ekleri, genel hitaplar, olağandışı domainler ve marka-domain uyuşmazlıkları gibi yaygın oltalama göstergelerini denetler.",
   },
   {
     soru: "Sisteminiz %100 doğru sonuç verir mi?",
-    cevap: "Yapay zeka modellerimiz sürekli öğrenip gelişse de, siber saldırı yöntemleri sürekli değiştiği için hiçbir güvenlik aracı %100 garanti veremez. Ruby size çok yüksek doğrulukta bir rehberlik sunar, ancak bağlantılara tıklarken son kontrol her zaman sizin inisiyatifinizdedir.",
+    cevap: "Hayır. Siber saldırı yöntemleri sürekli değiştiği için hiçbir güvenlik aracı %100 doğruluk garanti edemez. Ruby karar vermenize yardımcı olan bir farkındalık aracıdır; göndereni ve bağlantıyı resmî kanallardan ayrıca doğrulamanız gerekir.",
+  },
+  {
+    soru: "Ollama yorumu risk puanını değiştirir mi?",
+    cevap: "Hayır. Risk puanı yalnızca açıklanabilir güvenlik kurallarıyla hesaplanır. Ollama; bu puanı değiştirmeden, tespit edilen göstergeleri olası saldırı senaryosuyla ilişkilendirir ve duruma uygun güvenlik önerileri sunar.",
   },
 ];
 
