@@ -130,10 +130,10 @@ komutla çalıştırılabilir.
 - **Veri Erişim:** Entity Framework Core + Npgsql (veritabanı erişimi)
 - **Veritabanı:** PostgreSQL (Supabase üzerinden)
 - **Container:** Docker, Docker Compose, Nginx
+- **Orkestrasyon:** Kubernetes (Docker Desktop)
 
 ## Planlanan Teknolojiler
 
-- **Orkestrasyon:** Kubernetes (Minikube / Docker Desktop)
 - **Opsiyonel:** LLM entegrasyonu (analiz kalitesini artırmak için)
 
 ## Klasör Yapısı
@@ -145,7 +145,7 @@ secure-mail-analyzer/
 │   ├── RubyApi/       # .NET Web API projesi ve Dockerfile
 │   └── RubyApi.Tests/ # Analiz motoru ve istek doğrulama testleri
 ├── database/          # Veritabanı yapılandırması ve açıklamaları
-├── k8s/               # Kubernetes YAML dosyaları (henüz başlanmadı)
+├── k8s/               # Kubernetes manifestleri ve dağıtım scripti
 ├── docs/              # Ekran görüntüleri ve dokümantasyon
 ├── .env.example       # Docker ortam değişkenleri şablonu
 ├── docker-compose.yml # Frontend, backend ve PostgreSQL servisleri
@@ -154,25 +154,33 @@ secure-mail-analyzer/
 
 ## Kurulum ve Çalıştırma
 
-### Docker Compose ile önerilen kurulum
+Proje üç farklı yöntemden biriyle çalıştırılabilir:
 
-Bu yöntem için yalnızca Docker Desktop veya Docker Engine ile Docker Compose
-gereklidir; Node.js, .NET SDK ya da yerel PostgreSQL kurulmasına gerek yoktur.
+| Yöntem | Kullanım amacı | Veritabanı | Uygulama adresi |
+| --- | --- | --- | --- |
+| Docker Compose | En kolay, önerilen yerel kurulum | Docker içinde PostgreSQL | `http://localhost:8080` |
+| Manuel geliştirme | Frontend/backend kodunu ayrı ayrı geliştirme | Supabase veya harici PostgreSQL | `http://localhost:5173` |
+| Kubernetes | Orkestrasyon ve deployment testi | Kubernetes içinde PostgreSQL | `http://localhost:30080` |
 
-1. Örnek ortam dosyasını kopyalayın:
+Bu yöntemler birbirinden bağımsızdır. İhtiyacınıza uygun olan tek yöntemi seçmeniz
+yeterlidir.
+
+### Yöntem 1 — Docker Compose (önerilen)
+
+Bu yöntem için Docker Desktop veya Docker Engine ile Docker Compose yeterlidir;
+Node.js, .NET SDK ve yerel PostgreSQL kurulumu gerekmez.
+
+1. Ortam dosyasını hazırlayın ve içindeki parolaları değiştirin:
    ```powershell
    Copy-Item .env.example .env
    ```
-2. `.env` içindeki `POSTGRES_PASSWORD`, `ADMIN_PASSWORD` ve en az 32 karakterlik
-   `JWT_KEY` değerlerini güçlü, size özel değerlerle değiştirin.
-3. İmajları oluşturup servisleri arka planda başlatın:
+2. Frontend, backend ve PostgreSQL servislerini başlatın:
    ```powershell
    docker compose up --build -d
    ```
-4. Uygulamayı `http://localhost:8080` adresinden açın. `FRONTEND_PORT` değeri
-   değiştirilirse yeni portu kullanın.
+3. `http://localhost:8080` adresini açın.
 
-Servislerin durumunu ve kayıtlarını görüntülemek veya servisleri durdurmak için:
+Yönetim komutları:
 
 ```powershell
 docker compose ps
@@ -180,67 +188,99 @@ docker compose logs -f
 docker compose down
 ```
 
-PostgreSQL verileri `postgres_data` adlı Docker volume'ünde korunur.
-`docker compose down --volumes` komutu bu volume'ü ve içindeki yerel verileri
-kalıcı olarak siler. Backend ilk açılışta Entity Framework migration'larını
-otomatik uygular; ayrıca SQL komutu çalıştırılması gerekmez.
+Veriler `postgres_data` adlı Docker volume'ünde korunur. `docker compose down --volumes`
+komutu bu yerel verileri kalıcı olarak siler. Migration'lar backend başlarken
+otomatik uygulanır.
 
-Docker kurulumu kendi yerel PostgreSQL servisini kullanır. Aşağıdaki manuel
-backend kurulumu ise Supabase veya başka bir PostgreSQL sunucusuyla geliştirme
-yapmak isteyenler içindir.
+### Yöntem 2 — Manuel frontend/backend geliştirme
 
-### Frontend
+Bu yöntem kod üzerinde geliştirme yaparken frontend ve backend süreçlerini ayrı
+terminallerde çalıştırmak içindir. Node.js, .NET 10 SDK ve erişilebilir bir
+PostgreSQL veritabanı gerekir.
 
-1. `Node.js` (LTS sürüm) kurulu olmalıdır.
-2. `frontend` klasörüne girin.
-3. Bağımlılıkları kurun: `npm install`
-4. Geliştirme sunucusunu başlatın: `npm run dev` (varsayılan olarak `http://localhost:5173` üzerinden yayınlanır)
+#### Backend
 
-### Backend
-
-1. `.NET 10 SDK` kurulu olmalıdır.
-2. `backend/RubyApi` klasörüne girin.
-3. Supabase (PostgreSQL) bağlantı bilgisini `user-secrets` ile tanımlayın:
-   ```
+1. `backend/RubyApi` klasörüne girin.
+2. Supabase veya başka bir PostgreSQL bağlantısını tanımlayın:
+   ```powershell
    dotnet user-secrets set "ConnectionStrings:RubyDb" "Host=...;Port=5432;Database=postgres;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true"
    ```
-4. Admin erişim bilgilerini tanımlayın:
-   ```
+3. Admin ve JWT bilgilerini tanımlayın:
+   ```powershell
    dotnet user-secrets set "Admin:Password" "guclu-bir-yonetici-parolasi"
    dotnet user-secrets set "Jwt:Issuer" "RubyApi"
    dotnet user-secrets set "Jwt:Key" "en-az-32-karakterlik-rastgele-bir-gizli-anahtar"
    ```
-5. Veritabanı migration'larını uygulayın:
-   ```
+4. Migration'ları uygulayıp API'yi başlatın:
+   ```powershell
    dotnet ef database update
+   dotnet run
    ```
-   Bu komut `backend/RubyApi/Migrations/` klasöründeki migration'ları sırasıyla
-   uygular ve gerekli tablo/sütunları otomatik oluşturur veya günceller.
-6. API'yi çalıştırın: `dotnet run` (varsayılan olarak `http://localhost:5108` üzerinden yayınlanır)
 
-> Not: Bağlantı bilgileri hiçbir zaman koda veya Git'e yazılmaz, yalnızca yerel `user-secrets` deposunda tutulur.
+Backend varsayılan olarak `http://localhost:5108` adresinde çalışır.
 
-### Backend testleri
+#### Frontend
 
-Analiz motoru ve istek doğrulamalarını kontrol etmek için:
+Yeni bir terminal açın ve aşağıdaki komutları çalıştırın:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend varsayılan olarak `http://localhost:5173` adresinde çalışır.
+Bağlantı bilgileri koda yazılmaz; yalnızca yerel `user-secrets` deposunda tutulur.
+
+### Yöntem 3 — Kubernetes
+
+Bu yöntem Docker Desktop'ın yerleşik Kubernetes kümesini kullanır. Docker
+Desktop'ta Kubernetes kümesini oluşturduktan sonra hazır olduğunu doğrulayın:
+
+```powershell
+kubectl config use-context docker-desktop
+kubectl get nodes
+```
+
+Kök dizinde `.env` yoksa örnek dosyayı kopyalayın; `POSTGRES_PASSWORD`,
+`ADMIN_PASSWORD` ve en az 32 karakterlik `JWT_KEY` değerlerini düzenleyin.
+Ardından dağıtımı başlatın:
+
+```powershell
+Copy-Item .env.example .env
+powershell -ExecutionPolicy Bypass -File .\k8s\deploy.ps1
+```
+
+Script Docker imajlarını oluşturur, `.env` değerlerinden Kubernetes Secret
+üretir, manifestleri uygular ve deployment'ların hazır olmasını bekler. Gizli
+değerler Git'e yazılmaz. Uygulama `http://localhost:30080` adresinden açılır.
+
+Kubernetes yönetim komutları:
+
+```powershell
+kubectl get all,persistentvolumeclaims --namespace ruby-app
+kubectl logs deployment/backend --namespace ruby-app
+kubectl logs deployment/frontend --namespace ruby-app
+kubectl delete namespace ruby-app
+```
+
+Son komut namespace ile birlikte PostgreSQL ve Data Protection PVC'lerindeki
+yerel verileri de siler. PostgreSQL parolası ilk kurulumdan sonra değiştirilirse
+PVC eski parolayı koruyacağından namespace silinip yeniden dağıtılmalıdır.
+
+### Geliştirici notları
+
+Backend testlerini çalıştırmak için:
 
 ```powershell
 cd backend
 dotnet run --project RubyApi.Tests/RubyApi.Tests.csproj
 ```
 
-Test çalıştırıcısı dış test paketi gerektirmez ve herhangi bir test başarısız
-olduğunda sıfırdan farklı çıkış kodu döndürür.
-
-### Migration dosyaları hakkında
-
-- `backend/RubyApi/Migrations/` altındaki `.cs` ve `.Designer.cs` dosyaları ile
-  `RubyDbContextModelSnapshot.cs` Entity Framework migration geçmişinin
-  parçalarıdır. Veritabanının sıfırdan doğru kurulabilmesi için repoda
-  bulunmaları gerekir; silinmemelidir.
-- Projede tek bir temiz `Baslangic` migration'ı bulunur. Yeni bir veritabanında
-  `dotnet ef database update` komutunu çalıştırmak yeterlidir; ayrıca SQL
-  dosyası çalıştırılması gerekmez.
+`backend/RubyApi/Migrations/` altındaki migration dosyaları ve
+`RubyDbContextModelSnapshot.cs`, veritabanının sıfırdan kurulabilmesi için repoda
+bulunmalıdır. Projedeki temiz `Baslangic` migration'ının uygulanması yeterlidir;
+ayrıca `database/` altındaki bir SQL dosyasını çalıştırmak gerekmez.
 
 ## Geliştirme Geçmişi (Fazlar)
 
@@ -289,6 +329,18 @@ migration ve Nginx üzerinden API yönlendirmesi yapılandırıldı. Gizli değe
 ortamında uçtan uca doğrulandı.
 </details>
 
+<details>
+<summary><strong>Faz 6 — Kubernetes Orkestrasyonu</strong></summary>
+
+PostgreSQL, .NET backend ve Nginx tabanlı React frontend Kubernetes Deployment ve
+Service kaynaklarına dönüştürüldü. PostgreSQL verileri ile backend Data Protection
+anahtarları ayrı PersistentVolumeClaim kaynaklarında kalıcı hâle getirildi.
+ConfigMap, Secret, başlangıç/bekleme akışı, liveness-readiness-startup probe'ları,
+kaynak sınırları ve NodePort erişimi yapılandırıldı. Yerel imaj oluşturma ve
+dağıtım adımları PowerShell scriptiyle otomatikleştirilerek pod yenileme ve anonim
+geçmiş sürekliliği dâhil uçtan uca doğrulandı.
+</details>
+
 
 ## Yol Haritası
 
@@ -301,7 +353,7 @@ ortamında uçtan uca doğrulandı.
 - [x] Çoklu link, hedef uyuşmazlığı ve karmaşık domain kontrolleri
 - [x] Analiz motoru ve istek doğrulama testleri
 - [x] Docker ve Docker Compose yapılandırması
-- [ ] Kubernetes deployment dosyaları
+- [x] Kubernetes deployment dosyaları
 - [x] Anonim, tarayıcıya özel analiz geçmişi
 - [x] Admin paneli (toplam analiz sayısı, risk dağılımı ve en sık görülen risk tipleri)
 - [ ] LLM entegrasyonu (opsiyonel)

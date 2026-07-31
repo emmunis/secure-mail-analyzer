@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ruby-config
+  namespace: ruby-app
+data:
+  POSTGRES_DB: ruby
+  POSTGRES_USER: ruby
+  ASPNETCORE_ENVIRONMENT: Production
+  ASPNETCORE_URLS: http://+:8080
+  Database__MigrateOnStartup: "true"
+  HttpsRedirection__Enabled: "false"
+  Frontend__Origins__0: http://localhost:30080
+  Jwt__Issuer: RubyApi
+
