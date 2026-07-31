@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: ruby-app
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      securityContext:
+        fsGroup: 1654
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - until pg_isready -h postgres -p 5432 -U ruby -d ruby; do sleep 2; done
+      containers:
+        - name: backend
+          image: secure-mail-analyzer-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: ruby-config
+          env:
+            - name: ConnectionStrings__RubyDb
+              valueFrom:
+                secretKeyRef:
+                  name: ruby-secrets
+                  key: connection-string
+            - name: Admin__Password
+              valueFrom:
+                secretKeyRef:
+                  name: ruby-secrets
+                  key: admin-password
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: ruby-secrets
+                  key: jwt-key
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data-protection
+              mountPath: /home/app/.aspnet/DataProtection-Keys
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: data-protection
+          persistentVolumeClaim:
+            claimName: backend-data-protection
